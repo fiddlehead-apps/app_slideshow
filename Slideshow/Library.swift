@@ -34,7 +34,11 @@ final class Library {
     private var thumbs: [String: (version: Date, image: UIImage)] = [:]
 
     init() {
-        let support = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
+        var support = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
+        #if targetEnvironment(macCatalyst)
+        // Not sandboxed on the Mac, so Application Support is shared with every other app.
+        support.appendPathComponent(Bundle.main.bundleIdentifier ?? "org.christophschneider.slideshow", isDirectory: true)
+        #endif
         root = support.appendingPathComponent("Slideshows", isDirectory: true)
         try? FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
 

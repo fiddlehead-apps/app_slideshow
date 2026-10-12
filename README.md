@@ -2,7 +2,7 @@
 
 Native iOS-Version der Web-App [Folder Slideshow](../webapp_slideshow): spielt alle
 Bilder eines Ordners (oder ausgewählte Fotos) als Vollbild-Diashow ab. SwiftUI,
-keine Abhängigkeiten, iPhone und iPad, ab iOS 18, Deutsch und Englisch.
+keine Abhängigkeiten, iPhone, iPad und Mac, ab iOS 18, Deutsch und Englisch.
 
 * Kein Server, kein Konto – die Bilder verlassen das Gerät nie.
 * Gleiche Bedienung und gleiches Aussehen wie die Web-App.
@@ -105,6 +105,25 @@ xcrun devicectl device install app --device 00008150-000655C92E20401C /tmp/slide
 Beim allerersten Mal auf dem iPhone dem Profil vertrauen: *Einstellungen ›
 Allgemein › VPN & Geräteverwaltung › Apple-ID › Vertrauen*. Der Entwicklermodus
 (*Datenschutz & Sicherheit › Entwicklermodus*) muss an sein.
+
+### Auf dem Mac (Mac Catalyst)
+
+Dasselbe Target baut auch eine echte Mac-App. Sie ist lokal signiert
+(„Sign to Run Locally“), braucht also keinen Account und läuft ohne
+7-Tage-Grenze – allerdings nur auf dem Mac, auf dem sie gebaut wurde.
+
+```bash
+xcodebuild -project Slideshow.xcodeproj -scheme Slideshow -configuration Release -destination 'platform=macOS,variant=Mac Catalyst' -derivedDataPath /tmp/slideshow-mac build
+```
+
+```bash
+ditto /tmp/slideshow-mac/Build/Products/Release-maccatalyst/Slideshow.app ~/Applications/Slideshow.app
+```
+
+Auf dem Mac liegen die Daten unter
+`~/Library/Application Support/org.christophschneider.slideshow/Slideshows`.
+Statt Face ID fragt das Versteck nach Touch ID bzw. dem Mac-Passwort. Pfeiltasten,
+Leertaste und Esc steuern die Diashow, Vollbild über den grünen Fensterknopf.
 
 App-Icon neu erzeugen (gleiches Motiv wie die Web-App, braucht Pillow):
 
