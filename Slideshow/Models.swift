@@ -25,7 +25,9 @@ nonisolated struct ShowSettings: Codable, Equatable, Sendable {
         if !Self.intervals.contains(interval) { interval = d.interval }
     }
 
-    static func intervalLabel(_ s: Int) -> String { s < 60 ? "\(s) s" : "\(s / 60) min" }
+    static func intervalLabel(_ s: Int) -> String {
+        s < 60 ? String(localized: "\(s) s", comment: "Seconds per image") : String(localized: "\(s / 60) min", comment: "Minutes per image")
+    }
 }
 
 /// A saved slideshow. The images themselves live as downsized copies in
@@ -80,10 +82,12 @@ nonisolated struct Show: Codable, Identifiable, Equatable, Sendable {
 }
 
 nonisolated enum Format {
+    /// Same rounding as the web app, with the decimal separator of the current locale.
     static func bytes(_ b: Int64) -> String {
         let d = Double(b)
-        if d >= 1e9 { return String(format: "%.1f GB", d / 1e9) }
-        if d >= 1e7 { return "\(Int((d / 1e6).rounded())) MB" }
-        return String(format: "%.1f MB", d / 1e6)
+        let one = FloatingPointFormatStyle<Double>.number.precision(.fractionLength(1))
+        if d >= 1e9 { return (d / 1e9).formatted(one) + " GB" }
+        if d >= 1e7 { return Int((d / 1e6).rounded()).formatted() + " MB" }
+        return (d / 1e6).formatted(one) + " MB"
     }
 }

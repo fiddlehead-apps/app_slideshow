@@ -136,7 +136,7 @@ struct PlayerView: View {
                         .background(.white, in: .circle)
                 }
                 .keyboardShortcut(.space, modifiers: [])
-                .accessibilityLabel(player.playing ? "Pause" : "Play")
+                .accessibilityLabel(player.playing ? Text("Pause") : Text("Play"))
                 RoundButton(systemImage: "chevron.right", label: "Next image") { player.go(1) }
                     .keyboardShortcut(.rightArrow, modifiers: [])
                 Color.clear.frame(width: 48, height: 48).accessibilityHidden(true)
@@ -204,7 +204,7 @@ private struct ProgressBar: View {
 
 struct RoundButton: View {
     let systemImage: String
-    let label: String
+    let label: LocalizedStringKey
     let action: () -> Void
 
     var body: some View {
@@ -277,7 +277,7 @@ private struct SettingsSheet: View {
         .preferredColorScheme(.dark)
     }
 
-    private func toggle(_ title: String, _ detail: String?, _ key: WritableKeyPath<ShowSettings, Bool>,
+    private func toggle(_ title: LocalizedStringKey, _ detail: LocalizedStringKey?, _ key: WritableKeyPath<ShowSettings, Bool>,
                         _ current: ShowSettings) -> some View {
         VStack(spacing: 0) {
             Divider().overlay(Color.white.opacity(0.1))
@@ -295,12 +295,12 @@ private struct SettingsSheet: View {
         }
     }
 
-    private func sheetButton(_ title: String, action: @escaping () -> Void) -> some View {
+    private func sheetButton(_ title: LocalizedStringKey, action: @escaping () -> Void) -> some View {
         Button(action: action) { sheetLabel(title) }
             .foregroundStyle(.white)
     }
 
-    private func sheetLabel(_ title: String) -> some View {
+    private func sheetLabel(_ title: LocalizedStringKey) -> some View {
         Text(title)
             .font(.system(size: 16, weight: .semibold))
             .frame(maxWidth: .infinity, minHeight: 52)

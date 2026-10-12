@@ -218,7 +218,7 @@ final class Library {
         }
         if saving?.id == id { saving = nil }
         if full, let s = show(id) {
-            notice = "Storage on this device is full. \(n) of \(items.count) images from “\(s.name)” were saved."
+            notice = String(localized: "Storage on this device is full. \(n) of \(items.count) images from “\(s.name)” were saved.")
         }
     }
 

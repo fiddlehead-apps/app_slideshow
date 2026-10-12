@@ -107,12 +107,13 @@ final class Player {
     var countText: String {
         guard !order.isEmpty else { return "" }
         let name = name(of: order[pos])
-        return "\(pos + 1) of \(order.count)" + (name.isEmpty ? "" : "   " + name)
+        return String(localized: "\(pos + 1) of \(order.count)", comment: "Position in the slideshow")
+            + (name.isEmpty ? "" : "   " + name)
     }
 
     var savingText: String? {
         guard let s = library.saving, s.id == showID else { return nil }
-        return "Saving for quick access: \(s.saved) of \(s.total)"
+        return String(localized: "Saving for quick access: \(s.saved) of \(s.total)")
     }
 
     var displayLabel: String {
@@ -176,7 +177,7 @@ final class Player {
                 bad.insert(idx)
                 if bad.count >= order.count {
                     close()
-                    onFailure?("None of these images could be opened on this device.")
+                    onFailure?(String(localized: "None of these images could be opened on this device."))
                 } else {
                     show(pos + dir)
                 }

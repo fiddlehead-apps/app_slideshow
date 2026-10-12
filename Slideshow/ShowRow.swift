@@ -127,18 +127,20 @@ struct ShowRow: View {
     }
 
     private var subtitle: (text: String, live: Bool) {
-        if let s = library.saving, s.id == show.id { return ("Saving \(s.saved) of \(s.total)", true) }
+        if let s = library.saving, s.id == show.id { return (String(localized: "Saving \(s.saved) of \(s.total)"), true) }
         if !show.done {
             return (show.saved > 0
-                    ? "\(show.saved) of \(show.count) saved. Choose the folder again to finish."
-                    : "Not saved yet. Choose the folder again.", false)
+                    ? String(localized: "\(show.saved) of \(show.count) saved. Choose the folder again to finish.")
+                    : String(localized: "Not saved yet. Choose the folder again."), false)
         }
-        var bits = ["\(show.saved) \(show.saved == 1 ? "image" : "images")", ShowSettings.intervalLabel(show.settings.interval)]
-        if show.settings.shuffle { bits.append("shuffled") }
-        return (bits.joined(separator: ", "), false)
+        var bits = [String(localized: "\(show.saved) images"), ShowSettings.intervalLabel(show.settings.interval)]
+        if show.settings.shuffle { bits.append(String(localized: "shuffled", comment: "Slideshow plays in random order")) }
+        let separator = String(localized: "summary.separator", defaultValue: ", ",
+                               comment: "Separates the parts of a slideshow summary like “8 images, 5 s, shuffled”")
+        return (bits.joined(separator: separator), false)
     }
 
-    private func iconButton(_ symbol: String, label: String, action: @escaping () -> Void) -> some View {
+    private func iconButton(_ symbol: String, label: LocalizedStringKey, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             Image(systemName: symbol)
                 .font(.system(size: 18))
@@ -184,6 +186,6 @@ struct ShowRow: View {
             }
         }
         .buttonStyle(.plain)
-        .accessibilityLabel(confirmDelete ? "Confirm delete \(show.name)" : "Delete \(show.name)")
+        .accessibilityLabel(confirmDelete ? Text("Confirm delete \(show.name)") : Text("Delete \(show.name)"))
     }
 }

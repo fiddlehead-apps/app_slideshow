@@ -7,7 +7,7 @@ enum Unlock {
         let ctx = LAContext()
         var error: NSError?
         guard ctx.canEvaluatePolicy(.deviceOwnerAuthentication, error: &error) else { return false }
-        return (try? await ctx.evaluatePolicy(.deviceOwnerAuthentication, localizedReason: "Show hidden slideshows")) ?? false
+        return (try? await ctx.evaluatePolicy(.deviceOwnerAuthentication, localizedReason: String(localized: "Show hidden slideshows"))) ?? false
     }
 }
 
@@ -66,7 +66,7 @@ struct HelpView: View {
         }
     }
 
-    private func section(_ title: String, _ text: LocalizedStringKey) -> some View {
+    private func section(_ title: LocalizedStringKey, _ text: LocalizedStringKey) -> some View {
         VStack(alignment: .leading, spacing: 6) {
             Text(title)
                 .font(.system(size: 18, weight: .bold))

@@ -1,0 +1,831 @@
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    "%lld images" : {
+      "comment" : "Number of images in a saved slideshow",
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld image"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld images"
+                }
+              }
+            }
+          }
+        },
+        "de" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld Bild"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld Bilder"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "%lld min" : {
+      "comment" : "Time per image in minutes, keep it short",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld Min."
+          }
+        }
+      }
+    },
+    "%lld of %lld" : {
+      "comment" : "Position in the slideshow, e.g. 3 of 40",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld von %lld"
+          }
+        }
+      }
+    },
+    "%lld of %lld saved. Choose the folder again to finish." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld von %lld gespeichert. Wähle den Ordner noch einmal, um den Rest zu speichern."
+          }
+        }
+      }
+    },
+    "%lld s" : {
+      "comment" : "Time per image in seconds, keep it short",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld s"
+          }
+        }
+      }
+    },
+    "Cancel" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Abbrechen"
+          }
+        }
+      }
+    },
+    "Choose another folder" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Anderen Ordner wählen"
+          }
+        }
+      }
+    },
+    "Choose folder" : {
+      "comment" : "Button that opens the Files folder picker",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ordner wählen"
+          }
+        }
+      }
+    },
+    "Close slideshow" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Diashow schließen"
+          }
+        }
+      }
+    },
+    "Confirm delete %@" : {
+      "comment" : "Accessibility label of the red Delete button; %@ is the slideshow name",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ wirklich löschen"
+          }
+        }
+      }
+    },
+    "Crops edges instead of showing the whole image" : {
+      "comment" : "Explains the Fill screen setting",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Schneidet Ränder ab, statt das ganze Bild zu zeigen"
+          }
+        }
+      }
+    },
+    "Delete" : {
+      "comment" : "Context menu item and the red confirm button that replaces the bin",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Löschen"
+          }
+        }
+      }
+    },
+    "Delete %@" : {
+      "comment" : "Accessibility label of the bin button; %@ is the slideshow name",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ löschen"
+          }
+        }
+      }
+    },
+    "Done" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fertig"
+          }
+        }
+      }
+    },
+    "Every slideshow you start appears on the start screen and plays again with one tap. For that the app keeps copies of the images at screen size, so the folder is not needed anymore. Choosing the same folder again updates its slideshow instead of adding a second one. Use the pencil to rename a slideshow and the bin to delete it." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Jede Diashow, die du startest, erscheint auf der Startseite und läuft mit einem Tipp wieder an. Dafür behält die App Kopien der Bilder in Bildschirmgröße, der Ordner wird also nicht mehr gebraucht. Wählst du denselben Ordner noch einmal, wird seine Diashow aktualisiert, statt eine zweite anzulegen. Mit dem Stift benennst du eine Diashow um, mit dem Papierkorb löschst du sie."
+          }
+        }
+      }
+    },
+    "Fade between images" : {
+      "comment" : "Setting",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Überblenden"
+          }
+        }
+      }
+    },
+    "Files" : {
+      "comment" : "Menu item: pick image files from the Files app",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dateien"
+          }
+        }
+      }
+    },
+    "Fill screen" : {
+      "comment" : "Setting",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bildschirm füllen"
+          }
+        }
+      }
+    },
+    "Help" : {
+      "comment" : "Accessibility label of the ? button",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hilfe"
+          }
+        }
+      }
+    },
+    "Hidden slideshows" : {
+      "comment" : "Title of the list behind Face ID",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Versteckte Diashows"
+          }
+        }
+      }
+    },
+    "Hide this slideshow?" : {
+      "comment" : "Title of the dialog after tapping a slideshow five times",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Diese Diashow verstecken?"
+          }
+        }
+      }
+    },
+    "How it works" : {
+      "comment" : "Title of the help screen",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "So funktioniert’s"
+          }
+        }
+      }
+    },
+    "Images stay on this device. Nothing is uploaded, there is no account and nothing is tracked." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die Bilder bleiben auf diesem Gerät. Nichts wird hochgeladen, es gibt kein Konto und kein Tracking."
+          }
+        }
+      }
+    },
+    "Images stay on this device. Nothing is uploaded." : {
+      "comment" : "Footer on the start screen",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die Bilder bleiben auf diesem Gerät. Nichts wird hochgeladen."
+          }
+        }
+      }
+    },
+    "It disappears from this list and only shows up in the hidden slideshows." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sie verschwindet aus dieser Liste und ist nur noch bei den versteckten Diashows zu sehen."
+          }
+        }
+      }
+    },
+    "Move %@ back to Your slideshows" : {
+      "comment" : "Accessibility label of the eye button in the hidden list; %@ is the slideshow name",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ zurück zu „Deine Diashows“"
+          }
+        }
+      }
+    },
+    "Move to Your slideshows" : {
+      "comment" : "Context menu item in the hidden list",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zurück zu „Deine Diashows“"
+          }
+        }
+      }
+    },
+    "Move “%@” to hidden" : {
+      "comment" : "Confirm button; %@ is the slideshow name",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "„%@“ verstecken"
+          }
+        }
+      }
+    },
+    "Next image" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nächstes Bild"
+          }
+        }
+      }
+    },
+    "No hidden slideshows yet. Tap a slideshow on the start screen five times to hide it." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Noch keine versteckten Diashows. Tippe auf der Startseite fünfmal auf eine Diashow, um sie zu verstecken."
+          }
+        }
+      }
+    },
+    "None of the selected files are images." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keine der ausgewählten Dateien ist ein Bild."
+          }
+        }
+      }
+    },
+    "None of these images could be opened on this device." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keines dieser Bilder lässt sich auf diesem Gerät öffnen."
+          }
+        }
+      }
+    },
+    "Not saved yet. Choose the folder again." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Noch nicht gespeichert. Wähle den Ordner noch einmal."
+          }
+        }
+      }
+    },
+    "Nothing from this slideshow is saved yet. Choose the folder again to save it." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Von dieser Diashow ist noch nichts gespeichert. Wähle den Ordner noch einmal, um sie zu speichern."
+          }
+        }
+      }
+    },
+    "Opening your folder…" : {
+      "comment" : "Shown while the picked folder is read",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ordner wird geöffnet …"
+          }
+        }
+      }
+    },
+    "Pause" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pause"
+          }
+        }
+      }
+    },
+    "Photos" : {
+      "comment" : "Menu item: pick images from the Photos library",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fotos"
+          }
+        }
+      }
+    },
+    "Photos, %@" : {
+      "comment" : "Default name of a slideshow made from picked images; %@ is a short date like 12 Oct",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fotos, %@"
+          }
+        }
+      }
+    },
+    "Pick a folder in Files and every image in it plays full screen." : {
+      "comment" : "Start screen intro below the headline",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wähle einen Ordner in Dateien, und alle Bilder darin laufen im Vollbild."
+          }
+        }
+      }
+    },
+    "Pick photos or files" : {
+      "comment" : "Button with a menu: pick single images from Photos or Files",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fotos oder Dateien wählen"
+          }
+        }
+      }
+    },
+    "Play" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Abspielen"
+          }
+        }
+      }
+    },
+    "Previous image" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vorheriges Bild"
+          }
+        }
+      }
+    },
+    "Private" : {
+      "comment" : "Help heading. Tapping its paragraph five times opens the hidden slideshows, so keep it a short, ordinary heading",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Privat"
+          }
+        }
+      }
+    },
+    "Progress bar" : {
+      "comment" : "Setting",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fortschrittsbalken"
+          }
+        }
+      }
+    },
+    "Rename" : {
+      "comment" : "Context menu item",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Umbenennen"
+          }
+        }
+      }
+    },
+    "Rename %@" : {
+      "comment" : "Accessibility label of the pencil button; %@ is the slideshow name",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ umbenennen"
+          }
+        }
+      }
+    },
+    "Rename slideshow" : {
+      "comment" : "Title of the rename alert",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Diashow umbenennen"
+          }
+        }
+      }
+    },
+    "Save" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sichern"
+          }
+        }
+      }
+    },
+    "Saved as copies on this device, using %@." : {
+      "comment" : "Below the list; %@ is a size like 120 MB",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Als Kopien auf diesem Gerät gespeichert, belegt %@."
+          }
+        }
+      }
+    },
+    "Saving %lld of %lld" : {
+      "comment" : "Status of a slideshow in the list while its images are copied",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Speichere %lld von %lld"
+          }
+        }
+      }
+    },
+    "Saving for quick access: %lld of %lld" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wird für schnellen Zugriff gespeichert: %lld von %lld"
+          }
+        }
+      }
+    },
+    "Settings" : {
+      "comment" : "Player settings button, sheet title and help heading",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Einstellungen"
+          }
+        }
+      }
+    },
+    "Show a whole folder." : {
+      "comment" : "Start screen headline",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ein ganzer Ordner als Diashow."
+          }
+        }
+      }
+    },
+    "Show hidden slideshows" : {
+      "comment" : "Reason shown in the Face ID / passcode prompt",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Versteckte Diashows anzeigen"
+          }
+        }
+      }
+    },
+    "Shuffle" : {
+      "comment" : "Setting: play images in random order",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zufällige Reihenfolge"
+          }
+        }
+      }
+    },
+    "shuffled" : {
+      "comment" : "Part of a slideshow summary like “8 images, 5 s, shuffled”",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "gemischt"
+          }
+        }
+      }
+    },
+    "Slideshow" : {
+      "comment" : "Accessibility label of the full-screen player",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Diashow"
+          }
+        }
+      }
+    },
+    "Slideshow name" : {
+      "comment" : "Placeholder of the rename text field",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Name der Diashow"
+          }
+        }
+      }
+    },
+    "Slideshow plays every image in a folder – or photos you pick – as a full-screen slideshow." : {
+      "comment" : "“Slideshow” is the app name",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Slideshow spielt alle Bilder eines Ordners – oder Fotos, die du auswählst – als Diashow im Vollbild ab."
+          }
+        }
+      }
+    },
+    "Start a slideshow" : {
+      "comment" : "Help heading",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Diashow starten"
+          }
+        }
+      }
+    },
+    "Stop waiting" : {
+      "comment" : "Cancels reading a picked folder",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nicht mehr warten"
+          }
+        }
+      }
+    },
+    "Storage on this device is full. %lld of %lld images from “%@” were saved." : {
+      "comment" : "First number: saved images, second: all images, %@: slideshow name",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Der Speicher dieses Geräts ist voll. %lld von %lld Bildern aus „%@“ wurden gespeichert."
+          }
+        }
+      }
+    },
+    "summary.separator" : {
+      "comment" : "Separates the parts of a slideshow summary like “8 images, 5 s, shuffled”",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : ", "
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : ", "
+          }
+        }
+      }
+    },
+    "Tap **Choose folder** and pick a folder in Files, for example in iCloud Drive or On My iPhone. Every image in it and in its subfolders plays in name order. With **Pick photos or files** you choose single images from Photos or Files instead." : {
+      "comment" : "Bold parts must match the button titles",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tippe auf **Ordner wählen** und wähle einen Ordner in Dateien, zum Beispiel in iCloud Drive oder „Auf meinem iPhone“. Alle Bilder darin und in seinen Unterordnern laufen in Namensreihenfolge. Mit **Fotos oder Dateien wählen** suchst du stattdessen einzelne Bilder aus Fotos oder Dateien aus."
+          }
+        }
+      }
+    },
+    "Tap the right edge or swipe left for the next image, tap the left edge or swipe right for the previous one. A tap in the middle shows or hides the controls. The screen stays on as long as the slideshow runs." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tippe auf den rechten Rand oder wische nach links für das nächste Bild, tippe auf den linken Rand oder wische nach rechts für das vorherige. Ein Tipp in die Mitte blendet die Bedienelemente ein oder aus. Der Bildschirm bleibt an, solange die Diashow läuft."
+          }
+        }
+      }
+    },
+    "That folder has no images. Choose a folder with JPG, PNG, HEIC or WebP files." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "In diesem Ordner sind keine Bilder. Wähle einen Ordner mit JPG-, PNG-, HEIC- oder WebP-Dateien."
+          }
+        }
+      }
+    },
+    "The slider button at the bottom left opens the settings: time per image, shuffle, fill screen (crops the edges instead of showing the whole image), fading between images, and whether the progress bar runs along the bottom edge. Each slideshow remembers its own settings." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Der Regler-Knopf unten links öffnet die Einstellungen: Zeit pro Bild, zufällige Reihenfolge, Bildschirm füllen (schneidet die Ränder ab, statt das ganze Bild zu zeigen), Überblenden und ob der Fortschrittsbalken am unteren Rand mitläuft. Jede Diashow merkt sich ihre eigenen Einstellungen."
+          }
+        }
+      }
+    },
+    "Thin line at the bottom that runs until the next image" : {
+      "comment" : "Explains the Progress bar setting",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dünne Linie am unteren Rand, die bis zum nächsten Bild läuft"
+          }
+        }
+      }
+    },
+    "Time per image" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zeit pro Bild"
+          }
+        }
+      }
+    },
+    "Version %@" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Version %@"
+          }
+        }
+      }
+    },
+    "What it does" : {
+      "comment" : "Help heading",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Was die App macht"
+          }
+        }
+      }
+    },
+    "While it plays" : {
+      "comment" : "Help heading",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Während sie läuft"
+          }
+        }
+      }
+    },
+    "Your device reads every file in the folder before the slideshow can start. Big folders or photos that are only in iCloud Drive can take a moment. Nothing is uploaded." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dein Gerät liest jede Datei im Ordner, bevor die Diashow starten kann. Große Ordner oder Fotos, die nur in iCloud Drive liegen, können einen Moment dauern. Nichts wird hochgeladen."
+          }
+        }
+      }
+    },
+    "Your slideshows" : {
+      "comment" : "Heading of the list of saved slideshows",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Deine Diashows"
+          }
+        }
+      }
+    }
+  },
+  "version" : "1.0"
+}

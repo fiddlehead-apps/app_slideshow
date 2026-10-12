@@ -2,7 +2,7 @@
 
 Native iOS-Version der Web-App [Folder Slideshow](../webapp_slideshow): spielt alle
 Bilder eines Ordners (oder ausgewählte Fotos) als Vollbild-Diashow ab. SwiftUI,
-keine Abhängigkeiten, iPhone und iPad, ab iOS 18.
+keine Abhängigkeiten, iPhone und iPad, ab iOS 18, Deutsch und Englisch.
 
 * Kein Server, kein Konto – die Bilder verlassen das Gerät nie.
 * Gleiche Bedienung und gleiches Aussehen wie die Web-App.
@@ -43,6 +43,34 @@ Stift = umbenennen, Papierkorb = zweimal tippen zum Löschen.
   nötig. Läuft gerade eine versteckte Diashow, zeigt der App-Umschalter nur Schwarz.
 * Ohne eingerichteten Gerätecode passiert beim fünften Tipp nichts.
 
+## Sprachen
+
+Englisch (Ausgangssprache) und Deutsch. Die App folgt der Sprache des Geräts.
+
+* Alle Oberflächentexte stehen in `Slideshow/Localizable.xcstrings`, der
+  Face-ID-Hinweis in `Slideshow/InfoPlist.xcstrings` (String Catalogs). Jeder
+  Eintrag hat einen Kommentar mit Kontext für Übersetzer.
+* Der englische Text ist zugleich der Schlüssel. Pluralformen („1 image /
+  8 images“) laufen über Plural-Varianten im Catalog, nicht über `if` im Code.
+* Neue Texte im Code immer als Literal in `Text`/`Button`/`Label` schreiben
+  oder über `String(localized:)` erzeugen, nie als zusammengesetzten `String`.
+  Xcode übernimmt sie beim Bauen automatisch in den Catalog.
+
+**Weitere Sprache hinzufügen:** In Xcode *Project › Info › Localizations › +*,
+dann im Catalog übersetzen. Oder für Übersetzer eine XLIFF-Datei erzeugen und
+die fertige wieder einspielen:
+
+```bash
+xcodebuild -exportLocalizations -project Slideshow.xcodeproj -scheme Slideshow -localizationPath /tmp/slideshow-loc -exportLanguage fr -derivedDataPath /tmp/slideshow-build
+```
+
+```bash
+xcodebuild -importLocalizations -project Slideshow.xcodeproj -localizationPath /tmp/slideshow-loc/fr.xcloc
+```
+
+Im Simulator eine Sprache erzwingen, ohne das Gerät umzustellen: in Xcode unter
+*Scheme › Run › Options › App Language*.
+
 ## Bauen
 
 ```bash
@@ -77,3 +105,4 @@ python3 tools/make_icon.py
 | `Images.swift` | Ordner durchsuchen, iCloud-Dateien laden, verkleinern (ImageIO) |
 | `HelpView.swift` | Hilfe, Face-ID-Entsperren, versteckte Diashows |
 | `Models.swift` / `Theme.swift` | Datenmodell, Farben wie in der Web-App |
+| `Localizable.xcstrings` / `InfoPlist.xcstrings` | Texte auf Englisch und Deutsch |
