@@ -87,6 +87,25 @@ xcodebuild -project Slideshow.xcodeproj -scheme Slideshow -destination 'platform
 `-derivedDataPath` außerhalb von `~/Documents` halten: iCloud hängt dort
 Finder-Attribute an, an denen die Code-Signatur scheitert.
 
+### Aufs eigene iPhone ohne bezahlten Developer-Account
+
+Das Projekt ist mit dem kostenlosen Personal Team (`Z4Z62632W2`) signiert. So
+signierte Apps laufen **7 Tage**, danach einfach neu bauen und installieren –
+die gespeicherten Diashows bleiben erhalten. iPhone per Kabel anschließen,
+entsperren, dann:
+
+```bash
+xcodebuild -project Slideshow.xcodeproj -scheme Slideshow -configuration Release -destination 'id=00008150-000655C92E20401C' -derivedDataPath /tmp/slideshow-device -allowProvisioningUpdates build
+```
+
+```bash
+xcrun devicectl device install app --device 00008150-000655C92E20401C /tmp/slideshow-device/Build/Products/Release-iphoneos/Slideshow.app
+```
+
+Beim allerersten Mal auf dem iPhone dem Profil vertrauen: *Einstellungen ›
+Allgemein › VPN & Geräteverwaltung › Apple-ID › Vertrauen*. Der Entwicklermodus
+(*Datenschutz & Sicherheit › Entwicklermodus*) muss an sein.
+
 App-Icon neu erzeugen (gleiches Motiv wie die Web-App, braucht Pillow):
 
 ```bash
