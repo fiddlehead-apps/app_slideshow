@@ -3,54 +3,51 @@
   "strings" : {
     "CFBundleDisplayName" : {
       "comment" : "App name under the icon",
-      "extractionState" : "extracted_with_value",
       "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Slideshow"
-          }
-        },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Slideshow"
+            "value" : "Klar Diashow"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Klar Slideshow"
           }
         }
       }
     },
     "CFBundleName" : {
-      "comment" : "Bundle name",
-      "extractionState" : "extracted_with_value",
+      "comment" : "App name in the Mac menu bar",
       "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Slideshow"
-          }
-        },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Slideshow"
+            "value" : "Klar Diashow"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Klar Slideshow"
           }
         }
       }
     },
     "NSFaceIDUsageDescription" : {
       "comment" : "Why the app asks for Face ID",
-      "extractionState" : "extracted_with_value",
       "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Face ID unlocks your hidden slideshows."
-          }
-        },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Face ID entsperrt deine versteckten Diashows."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Face ID unlocks your hidden slideshows."
           }
         }
       }

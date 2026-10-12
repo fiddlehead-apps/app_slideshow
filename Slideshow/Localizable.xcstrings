@@ -4,24 +4,6 @@
     "%lld images" : {
       "comment" : "Number of images in a saved slideshow",
       "localizations" : {
-        "en" : {
-          "variations" : {
-            "plural" : {
-              "one" : {
-                "stringUnit" : {
-                  "state" : "translated",
-                  "value" : "%lld image"
-                }
-              },
-              "other" : {
-                "stringUnit" : {
-                  "state" : "translated",
-                  "value" : "%lld images"
-                }
-              }
-            }
-          }
-        },
         "de" : {
           "variations" : {
             "plural" : {
@@ -39,11 +21,29 @@
               }
             }
           }
+        },
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld image"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld images"
+                }
+              }
+            }
+          }
         }
       }
     },
     "%lld min" : {
-      "comment" : "Time per image in minutes, keep it short",
+      "comment" : "Minutes per image",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -54,7 +54,7 @@
       }
     },
     "%lld of %lld" : {
-      "comment" : "Position in the slideshow, e.g. 3 of 40",
+      "comment" : "Position in the slideshow",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -75,7 +75,7 @@
       }
     },
     "%lld s" : {
-      "comment" : "Time per image in seconds, keep it short",
+      "comment" : "Seconds per image",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -171,6 +171,7 @@
       }
     },
     "Done" : {
+      "comment" : "Closes the help screen and the slideshow settings",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -298,6 +299,28 @@
         }
       }
     },
+    "Klar Slideshow plays every image in a folder – or photos you pick – full screen." : {
+      "comment" : "“Klar Slideshow” is the app name (German: “Klar Diashow”)",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Klar Diashow zeigt alle Bilder eines Ordners – oder Fotos, die du auswählst – im Vollbild."
+          }
+        }
+      }
+    },
+    "Move “%@” to hidden" : {
+      "comment" : "Confirm button; %@ is the slideshow name",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "„%@“ verstecken"
+          }
+        }
+      }
+    },
     "Move %@ back to Your slideshows" : {
       "comment" : "Accessibility label of the eye button in the hidden list; %@ is the slideshow name",
       "localizations" : {
@@ -316,17 +339,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Zurück zu „Deine Diashows“"
-          }
-        }
-      }
-    },
-    "Move “%@” to hidden" : {
-      "comment" : "Confirm button; %@ is the slideshow name",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "„%@“ verstecken"
           }
         }
       }
@@ -424,7 +436,7 @@
       }
     },
     "Photos, %@" : {
-      "comment" : "Default name of a slideshow made from picked images; %@ is a short date like 12 Oct",
+      "comment" : "Default name for a slideshow of picked images",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -618,7 +630,7 @@
       }
     },
     "shuffled" : {
-      "comment" : "Part of a slideshow summary like “8 images, 5 s, shuffled”",
+      "comment" : "Slideshow plays in random order",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -646,17 +658,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Name der Diashow"
-          }
-        }
-      }
-    },
-    "Slideshow plays every image in a folder – or photos you pick – as a full-screen slideshow." : {
-      "comment" : "“Slideshow” is the app name",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Slideshow spielt alle Bilder eines Ordners – oder Fotos, die du auswählst – als Diashow im Vollbild ab."
           }
         }
       }

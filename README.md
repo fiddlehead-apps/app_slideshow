@@ -1,4 +1,6 @@
-# Slideshow (iOS)
+# Klar Slideshow (iOS, Mac)
+
+Auf Deutsch heißt die App **Klar Diashow**.
 
 Native iOS-Version der Web-App [Folder Slideshow](../webapp_slideshow): spielt alle
 Bilder eines Ordners (oder ausgewählte Fotos) als Vollbild-Diashow ab. SwiftUI,
@@ -99,7 +101,7 @@ xcodebuild -project Slideshow.xcodeproj -scheme Slideshow -configuration Release
 ```
 
 ```bash
-xcrun devicectl device install app --device 00008150-000655C92E20401C /tmp/slideshow-device/Build/Products/Release-iphoneos/Slideshow.app
+xcrun devicectl device install app --device 00008150-000655C92E20401C "/tmp/slideshow-device/Build/Products/Release-iphoneos/Klar Slideshow.app"
 ```
 
 Beim allerersten Mal auf dem iPhone dem Profil vertrauen: *Einstellungen ›
@@ -117,7 +119,7 @@ xcodebuild -project Slideshow.xcodeproj -scheme Slideshow -configuration Release
 ```
 
 ```bash
-ditto /tmp/slideshow-mac/Build/Products/Release-maccatalyst/Slideshow.app ~/Applications/Slideshow.app
+ditto "/tmp/slideshow-mac/Build/Products/Release-maccatalyst/Klar Slideshow.app" ~/Applications/"Klar Slideshow.app"
 ```
 
 Auf dem Mac liegen die Daten unter

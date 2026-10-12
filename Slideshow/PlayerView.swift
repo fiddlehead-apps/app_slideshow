@@ -230,9 +230,23 @@ private struct SettingsSheet: View {
         let current = player.settings
         ScrollView {
             VStack(alignment: .leading, spacing: 0) {
-                Text("Settings")
-                    .font(.system(size: 20, weight: .heavy))
-                    .padding(.bottom, 16)
+                HStack {
+                    Text("Settings")
+                        .font(.system(size: 20, weight: .heavy))
+                    Spacer()
+                    // Swiping down is the only other way out on iPhone; on the Mac only Esc would close it.
+                    Button { player.sheetOpen = false } label: {
+                        Text("Done")
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundStyle(.black)
+                            .padding(.horizontal, 16)
+                            .padding(.vertical, 8)
+                            .background(.white, in: .capsule)
+                    }
+                    .buttonStyle(.plain)
+                    .keyboardShortcut(.defaultAction)
+                }
+                .padding(.bottom, 16)
 
                 Text("Time per image")
                     .font(.system(size: 15))
