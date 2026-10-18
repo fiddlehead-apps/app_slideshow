@@ -299,13 +299,13 @@
         }
       }
     },
-    "Klar Slideshow plays every image in a folder – or photos you pick – full screen." : {
-      "comment" : "“Klar Slideshow” is the app name (German: “Klar Diashow”)",
+    "Sola Slideshow plays every image in a folder – or photos you pick – full screen." : {
+      "comment" : "“Sola Slideshow” is the app name (German: “Sola Diashow”)",
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Klar Diashow zeigt alle Bilder eines Ordners – oder Fotos, die du auswählst – im Vollbild."
+            "value" : "Sola Diashow zeigt alle Bilder eines Ordners – oder Fotos, die du auswählst – im Vollbild."
           }
         }
       }

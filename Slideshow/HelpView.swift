@@ -23,7 +23,7 @@ struct HelpView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 22) {
                     section("What it does",
-                            "Klar Slideshow plays every image in a folder – or photos you pick – full screen.")
+                            "Sola Slideshow plays every image in a folder – or photos you pick – full screen.")
                     section("Start a slideshow",
                             "Tap **Choose folder** and pick a folder in Files, for example in iCloud Drive or On My iPhone. Every image in it and in its subfolders plays in name order. With **Pick photos or files** you choose single images from Photos or Files instead.")
                     section("While it plays",
