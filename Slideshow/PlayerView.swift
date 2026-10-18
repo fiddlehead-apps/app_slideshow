@@ -189,7 +189,9 @@ private struct ProgressBar: View {
     let player: Player
 
     var body: some View {
-        TimelineView(.animation(paused: player.runningSince == nil)) { ctx in
+        // About a thousand steps per image, so a bar running for an hour doesn't redraw every frame.
+        TimelineView(.animation(minimumInterval: Double(player.settings.interval) / 1000,
+                                paused: player.runningSince == nil)) { ctx in
             let f = player.progress(at: ctx.date)
             ZStack(alignment: .leading) {
                 Rectangle().fill(.white.opacity(0.12))
@@ -224,6 +226,11 @@ private struct SettingsSheet: View {
     let player: Player
     var onPick: (PickKind) -> Void
 
+    @State private var customOpen = false
+    @State private var customValue: Int?
+    @State private var customUnit = 1
+    @FocusState private var customFocused: Bool
+
     var body: some View {
         // Read here so the sheet redraws when a setting changes (values read only
         // inside Toggle bindings or ForEach rows would not be tracked).
@@ -252,21 +259,39 @@ private struct SettingsSheet: View {
                     .font(.system(size: 15))
                     .opacity(0.7)
                     .padding(.bottom, 8)
-                HStack(spacing: 8) {
+                FlowLayout(spacing: 8) {
                     ForEach(ShowSettings.intervals, id: \.self) { s in
-                        let on = current.interval == s
-                        Button { player.change { $0.interval = s } } label: {
-                            Text(ShowSettings.intervalLabel(s))
-                                .font(.system(size: 15, weight: .semibold).monospacedDigit())
-                                .padding(.horizontal, 14)
-                                .padding(.vertical, 9)
-                                .foregroundStyle(on ? .black : .white)
-                                .background(on ? Color.white : Color.white.opacity(0.1), in: .capsule)
+                        chip(ShowSettings.intervalLabel(s), on: !customOpen && current.interval == s) {
+                            customOpen = false
+                            player.change { $0.interval = s }
                         }
-                        .accessibilityAddTraits(on ? .isSelected : [])
+                    }
+                    chip(String(localized: "Custom"), on: customOpen) {
+                        startCustom(current.interval)
                     }
                 }
-                .padding(.bottom, 18)
+                .padding(.bottom, customOpen ? 12 : 18)
+
+                if customOpen {
+                    HStack(spacing: 10) {
+                        TextField("Time", value: $customValue, format: .number)
+                            .keyboardType(.numberPad)
+                            .focused($customFocused)
+                            .font(.system(size: 17, weight: .semibold).monospacedDigit())
+                            .padding(.horizontal, 14)
+                            .frame(width: 96, height: 40)
+                            .background(Color.white.opacity(0.1), in: .rect(cornerRadius: 10))
+                            .accessibilityLabel("Custom time per image")
+                        Picker("Unit", selection: $customUnit) {
+                            Text("Seconds").tag(1)
+                            Text("Minutes").tag(60)
+                        }
+                        .pickerStyle(.segmented)
+                    }
+                    .padding(.bottom, 18)
+                    .onChange(of: customValue) { applyCustom() }
+                    .onChange(of: customUnit) { applyCustom() }
+                }
 
                 toggle("Shuffle", nil, \.shuffle, current)
                 toggle("Fill screen", "Crops edges instead of showing the whole image", \.fill, current)
@@ -284,11 +309,42 @@ private struct SettingsSheet: View {
             .padding(.top, 24)
             .padding(.bottom, 20)
         }
+        .scrollDismissesKeyboard(.interactively)
         .foregroundStyle(.white)
-        .presentationDetents([.height(560), .large])
+        .onAppear {
+            if !ShowSettings.intervals.contains(current.interval) { startCustom(current.interval, focus: false) }
+        }
+        .presentationDetents([.height(660), .large])
         .presentationDragIndicator(.visible)
         .presentationBackground(.ultraThinMaterial)
         .preferredColorScheme(.dark)
+    }
+
+    private func chip(_ title: String, on: Bool, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Text(title)
+                .font(.system(size: 15, weight: .semibold).monospacedDigit())
+                .padding(.horizontal, 14)
+                .padding(.vertical, 9)
+                .foregroundStyle(on ? .black : .white)
+                .background(on ? Color.white : Color.white.opacity(0.1), in: .capsule)
+        }
+        .accessibilityAddTraits(on ? .isSelected : [])
+    }
+
+    /// Opens the custom field, prefilled with the current time in whole minutes when it is one.
+    private func startCustom(_ interval: Int, focus: Bool = true) {
+        customUnit = interval % 60 == 0 ? 60 : 1
+        customValue = interval / customUnit
+        customOpen = true
+        customFocused = focus
+    }
+
+    private func applyCustom() {
+        guard let v = customValue, v > 0 else { return }
+        let r = ShowSettings.intervalRange
+        let s = min(max(v * customUnit, r.lowerBound), r.upperBound)
+        if s != player.settings.interval { player.change { $0.interval = s } }
     }
 
     private func toggle(_ title: LocalizedStringKey, _ detail: LocalizedStringKey?, _ key: WritableKeyPath<ShowSettings, Bool>,
@@ -319,5 +375,51 @@ private struct SettingsSheet: View {
             .font(.system(size: 16, weight: .semibold))
             .frame(maxWidth: .infinity, minHeight: 52)
             .background(Color.white.opacity(0.1), in: .rect(cornerRadius: 16))
+    }
+}
+
+/// Lays its children out left to right and wraps to a new line when the row is full.
+private struct FlowLayout: Layout {
+    var spacing: CGFloat
+
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+        let rows = rows(for: subviews, width: proposal.width ?? .infinity)
+        let height = rows.map(\.height).reduce(0, +) + spacing * CGFloat(max(0, rows.count - 1))
+        return CGSize(width: proposal.width ?? rows.map(\.width).max() ?? 0, height: height)
+    }
+
+    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
+        var y = bounds.minY
+        for row in rows(for: subviews, width: bounds.width) {
+            var x = bounds.minX
+            for i in row.indices {
+                let size = subviews[i].sizeThatFits(.unspecified)
+                subviews[i].place(at: CGPoint(x: x, y: y), proposal: ProposedViewSize(size))
+                x += size.width + spacing
+            }
+            y += row.height + spacing
+        }
+    }
+
+    private struct Row {
+        var indices: [Int] = []
+        var width: CGFloat = 0
+        var height: CGFloat = 0
+    }
+
+    private func rows(for subviews: Subviews, width: CGFloat) -> [Row] {
+        var rows = [Row()]
+        for i in subviews.indices {
+            let size = subviews[i].sizeThatFits(.unspecified)
+            if !rows[rows.count - 1].indices.isEmpty && rows[rows.count - 1].width + spacing + size.width > width {
+                rows.append(Row())
+            }
+            var row = rows[rows.count - 1]
+            row.width += (row.indices.isEmpty ? 0 : spacing) + size.width
+            row.height = max(row.height, size.height)
+            row.indices.append(i)
+            rows[rows.count - 1] = row
+        }
+        return rows
     }
 }

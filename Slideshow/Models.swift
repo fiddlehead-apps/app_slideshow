@@ -3,7 +3,9 @@ import Foundation
 /// Playback options. Stored globally as the defaults for new slideshows,
 /// and per slideshow so each one starts the way it was last played.
 nonisolated struct ShowSettings: Codable, Equatable, Sendable {
-    static let intervals = [3, 5, 10, 30, 60]
+    static let intervals = [3, 5, 10, 30, 60, 120, 300, 600, 900, 1800, 3600]
+    /// Anything in here can be set as a custom time, from one second to a day.
+    static let intervalRange = 1...86_400
 
     var interval = 5
     var shuffle = false
@@ -22,11 +24,11 @@ nonisolated struct ShowSettings: Codable, Equatable, Sendable {
         fill = try c.decodeIfPresent(Bool.self, forKey: .fill) ?? d.fill
         fade = try c.decodeIfPresent(Bool.self, forKey: .fade) ?? d.fade
         progress = try c.decodeIfPresent(Bool.self, forKey: .progress) ?? d.progress
-        if !Self.intervals.contains(interval) { interval = d.interval }
+        if !Self.intervalRange.contains(interval) { interval = d.interval }
     }
 
     static func intervalLabel(_ s: Int) -> String {
-        s < 60 ? String(localized: "\(s) s", comment: "Seconds per image") : String(localized: "\(s / 60) min", comment: "Minutes per image")
+        s % 60 != 0 ? String(localized: "\(s) s", comment: "Seconds per image") : String(localized: "\(s / 60) min", comment: "Minutes per image")
     }
 }
 

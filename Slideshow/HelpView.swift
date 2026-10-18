@@ -16,7 +16,13 @@ struct HelpView: View {
     var onOpen: (Show) -> Void
 
     @Environment(\.dismiss) private var dismiss
-    @State private var unlocked = false
+    @State private var unlocked: Bool
+
+    init(library: Library, startHidden: Bool = false, onOpen: @escaping (Show) -> Void) {
+        self.library = library
+        self.onOpen = onOpen
+        _unlocked = State(initialValue: startHidden)
+    }
 
     var body: some View {
         NavigationStack {

@@ -12,6 +12,7 @@ struct StartView: View {
     var onStopWaiting: () -> Void
     var onOpen: (Show) -> Void
     var onHelp: () -> Void
+    var onHidden: () -> Void
 
     struct Message: Equatable {
         var text: String
@@ -79,9 +80,12 @@ struct StartView: View {
 
                 if !shows.isEmpty { librarySection(shows) }
 
+                // Tapping this line five times asks for Face ID and opens the hidden slideshows.
                 Text("Images stay on this device. Nothing is uploaded.")
                     .font(.system(size: 14))
                     .foregroundStyle(Color.muted)
+                    .contentShape(.rect)
+                    .onMultiTap(5, window: .milliseconds(1200), reached: onHidden)
                     .padding(.top, 26)
             }
             .frame(maxWidth: 420, alignment: .leading)

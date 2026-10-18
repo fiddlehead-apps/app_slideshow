@@ -20,6 +20,7 @@ struct RootView: View {
     @State private var waiting: StartView.Waiting?
     @State private var scanTask: Task<Void, Never>?
     @State private var showHelp = false
+    @State private var helpStartsHidden = false
     @State private var importing = false
     @State private var importFolder = true
     @State private var pickingPhotos = false
@@ -34,7 +35,7 @@ struct RootView: View {
     var body: some View {
         ZStack {
             StartView(library: library, player: player, message: $message, waiting: waiting,
-                      onPick: pick, onStopWaiting: stopWaiting, onOpen: openSaved, onHelp: { showHelp = true })
+                      onPick: pick, onStopWaiting: stopWaiting, onOpen: openSaved, onHelp: openHelp, onHidden: openHidden)
                 .accessibilityHidden(player.isOpen)
 
             if player.isOpen {
@@ -52,7 +53,7 @@ struct RootView: View {
         .fontDesign(.rounded)
         .tint(Color.accent)
         .sheet(isPresented: $showHelp) {
-            HelpView(library: library) { show in
+            HelpView(library: library, startHidden: helpStartsHidden) { show in
                 showHelp = false
                 openSaved(show)
             }
@@ -82,6 +83,21 @@ struct RootView: View {
         if showHelp { return true }
         if player.isOpen, let id = player.showID, library.show(id)?.hidden == true { return true }
         return false
+    }
+
+    private func openHelp() {
+        helpStartsHidden = false
+        showHelp = true
+    }
+
+    /// Unlocks the hidden slideshows from the start screen. They open inside the help sheet,
+    /// so the same rules lock them again when the app goes to the background.
+    private func openHidden() {
+        Task {
+            guard await Unlock.run() else { return }
+            helpStartsHidden = true
+            showHelp = true
+        }
     }
 
     // MARK: Picking
