@@ -9,7 +9,7 @@ import os
 from PIL import Image, ImageDraw
 
 OUT = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
-                   'Slideshow', 'Assets.xcassets', 'AppIcon.appiconset', 'icon-1024.png')
+                   'SolaSlideshow', 'Assets.xcassets', 'AppIcon.appiconset', 'icon-1024.png')
 SS = 4
 
 BLUE = '#2446D8'

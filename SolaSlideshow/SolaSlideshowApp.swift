@@ -3,7 +3,7 @@ import SwiftUI
 import UniformTypeIdentifiers
 
 @main
-struct SlideshowApp: App {
+struct SolaSlideshowApp: App {
     var body: some Scene {
         WindowGroup {
             RootView()
@@ -73,6 +73,7 @@ struct RootView: View {
         .onChange(of: scenePhase) { _, phase in
             // Leaving the app locks the hidden slideshows again.
             if phase == .background { showHelp = false }
+            if phase == .active { Task { await library.cloud.syncNow() } }
         }
         .onAppear {
             player.onFailure = { text in message = .init(text: text, isError: true) }
@@ -125,7 +126,9 @@ struct RootView: View {
             let folder = urls[0]
             let access = FolderAccess(folder)
             waiting = .init(title: String(localized: "Opening your folder…"),
-                            text: String(localized: "Your device reads every file in the folder before the slideshow can start. Big folders or photos that are only in iCloud Drive can take a moment. Nothing is uploaded."),
+                            text: library.cloud.isOn
+                                ? String(localized: "Your device reads every file in the folder before the slideshow can start. Big folders or photos that are only in iCloud Drive can take a moment.")
+                                : String(localized: "Your device reads every file in the folder before the slideshow can start. Big folders or photos that are only in iCloud Drive can take a moment. Nothing is uploaded."),
                             since: Date())
             scanTask = Task {
                 let items = await Images.scan(folder: folder, access: access)

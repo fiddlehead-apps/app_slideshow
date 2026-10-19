@@ -41,13 +41,21 @@ struct HelpView: View {
 
                     // Tapping this paragraph five times asks for Face ID and opens the hidden slideshows.
                     section("Private",
-                            "Images stay on this device. Nothing is uploaded, there is no account and nothing is tracked.")
+                            "Images stay on this device unless you turn on iCloud sync. Nothing goes to a server of ours, there is no account and nothing is tracked.")
                         .contentShape(.rect)
                         .onMultiTap(5, window: .milliseconds(1200)) {
                             Task {
                                 if await Unlock.run() { unlocked = true }
                             }
                         }
+
+                    VStack(alignment: .leading, spacing: 10) {
+                        section("iCloud",
+                                "Off unless you turn it on. Then your slideshows with their saved copies, and the settings for new slideshows, sync through your private iCloud database to your devices with the same Apple Account. The copies count toward your iCloud storage.")
+                        CloudSyncToggle(sync: library.cloud)
+                            .font(.system(size: 16))
+                            .tint(Color.switchOn)
+                    }
 
                     Text("Version \(Self.version)")
                         .font(.system(size: 13))

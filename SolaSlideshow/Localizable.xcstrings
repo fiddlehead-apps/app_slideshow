@@ -288,16 +288,6 @@
         }
       }
     },
-    "Images stay on this device. Nothing is uploaded, there is no account and nothing is tracked." : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Die Bilder bleiben auf diesem Gerät. Nichts wird hochgeladen, es gibt kein Konto und kein Tracking."
-          }
-        }
-      }
-    },
     "Images stay on this device. Nothing is uploaded." : {
       "comment" : "Footer on the start screen",
       "localizations" : {
@@ -883,6 +873,303 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Deine Diashows"
+          }
+        }
+      }
+    },
+    "Couldn’t delete the data in iCloud: %@" : {
+      "comment" : "Turning off iCloud sync with deletion failed; %@ is the system's error message",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die Daten in iCloud konnten nicht gelöscht werden: %@"
+          }
+        }
+      }
+    },
+    "Delete data from iCloud" : {
+      "comment" : "Button when turning off iCloud sync: also remove the copy in iCloud",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Daten in iCloud löschen"
+          }
+        }
+      }
+    },
+    "Everything stays on this device either way. Your other devices keep their copy too and stop syncing if you delete it." : {
+      "comment" : "Message of the dialog when turning off iCloud sync",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Auf diesem Gerät bleibt in jedem Fall alles erhalten. Deine anderen Geräte behalten ihre Kopie ebenfalls und hören auf zu synchronisieren, wenn du sie löschst."
+          }
+        }
+      }
+    },
+    "Keep data in iCloud" : {
+      "comment" : "Button when turning off iCloud sync: leave the copy in iCloud",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Daten in iCloud behalten"
+          }
+        }
+      }
+    },
+    "Not synced" : {
+      "comment" : "iCloud sync status when there is a problem (explained below the switch)",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nicht synchronisiert"
+          }
+        }
+      }
+    },
+    "Off" : {
+      "comment" : "iCloud sync in a build without iCloud",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aus"
+          }
+        }
+      }
+    },
+    "Sign in to iCloud in the Settings app first." : {
+      "comment" : "Turning on iCloud sync without an iCloud account",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Melde dich zuerst in der Einstellungen-App bei iCloud an."
+          }
+        }
+      }
+    },
+    "Status" : {
+      "comment" : "iCloud sync status row",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Status"
+          }
+        }
+      }
+    },
+    "Synced %@" : {
+      "comment" : "iCloud sync status; %@ is a relative time like '5 minutes ago'",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Synchronisiert %@"
+          }
+        }
+      }
+    },
+    "Syncing…" : {
+      "comment" : "iCloud sync status",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wird synchronisiert …"
+          }
+        }
+      }
+    },
+    "The data in iCloud was deleted, so sync was turned off. Everything is still on this device." : {
+      "comment" : "Another device or the iCloud settings deleted the app's iCloud data",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die Daten in iCloud wurden gelöscht, deshalb ist der Sync jetzt aus. Auf diesem Gerät ist noch alles da."
+          }
+        }
+      }
+    },
+    "The iCloud account changed, so sync was turned off. Everything is still on this device." : {
+      "comment" : "Another Apple Account signed in",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Der iCloud-Account hat gewechselt, deshalb ist der Sync jetzt aus. Auf diesem Gerät ist noch alles da."
+          }
+        }
+      }
+    },
+    "This build keeps everything on this device and can’t sync." : {
+      "comment" : "Footer in builds without iCloud (developer builds)",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dieser Build speichert alles nur auf diesem Gerät und kann nicht synchronisieren."
+          }
+        }
+      }
+    },
+    "Turn off iCloud sync?" : {
+      "comment" : "Title of the dialog when turning off iCloud sync",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "iCloud-Sync ausschalten?"
+          }
+        }
+      }
+    },
+    "Up to date" : {
+      "comment" : "iCloud sync status",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aktuell"
+          }
+        }
+      }
+    },
+    "Waiting for a connection to iCloud." : {
+      "comment" : "iCloud sync status while offline",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Warte auf eine Verbindung zu iCloud."
+          }
+        }
+      }
+    },
+    "You signed out of iCloud, so sync was turned off. Everything is still on this device." : {
+      "comment" : "The user signed out of iCloud while sync was on",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Du hast dich von iCloud abgemeldet, deshalb ist der Sync jetzt aus. Auf diesem Gerät ist noch alles da."
+          }
+        }
+      }
+    },
+    "Your iCloud storage is full." : {
+      "comment" : "iCloud sync problem",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dein iCloud-Speicher ist voll."
+          }
+        }
+      }
+    },
+    "iCloud" : {
+      "comment" : "Settings section header",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "iCloud"
+          }
+        }
+      }
+    },
+    "iCloud is restricted on this device." : {
+      "comment" : "Turning on iCloud sync when Screen Time or a profile blocks iCloud",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "iCloud ist auf diesem Gerät eingeschränkt."
+          }
+        }
+      }
+    },
+    "iCloud isn’t available right now. Try again later." : {
+      "comment" : "Turning on iCloud sync failed for another reason",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "iCloud ist gerade nicht erreichbar. Versuch es später noch einmal."
+          }
+        }
+      }
+    },
+    "iCloud sync" : {
+      "comment" : "Settings switch, off by default",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "iCloud-Sync"
+          }
+        }
+      }
+    },
+    "Images stay on this device unless you turn on iCloud sync. Nothing goes to a server of ours, there is no account and nothing is tracked." : {
+      "comment" : "Help, paragraph “Private” (tapping it five times opens the hidden slideshows)",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die Bilder bleiben auf diesem Gerät, solange du den iCloud-Sync nicht einschaltest. Nichts geht an einen Server von uns, es gibt kein Konto und kein Tracking."
+          }
+        }
+      }
+    },
+    "Loading from iCloud: %lld of %lld" : {
+      "comment" : "Status of a slideshow whose images are still coming from iCloud",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wird aus iCloud geladen: %lld von %lld"
+          }
+        }
+      }
+    },
+    "Off unless you turn it on. Then your slideshows with their saved copies, and the settings for new slideshows, sync through your private iCloud database to your devices with the same Apple Account. The copies count toward your iCloud storage." : {
+      "comment" : "Help, explains the iCloud sync switch",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aus, solange du es nicht einschaltest. Dann werden deine Diashows mit ihren gespeicherten Kopien und die Einstellungen für neue Diashows über deine private iCloud-Datenbank mit deinen Geräten mit demselben Apple Account abgeglichen. Die Kopien belegen deinen iCloud-Speicher."
+          }
+        }
+      }
+    },
+    "Synced with your iCloud. Nothing else is uploaded." : {
+      "comment" : "Start screen footer while iCloud sync is on (tapping it five times opens the hidden slideshows)",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mit deiner iCloud abgeglichen. Sonst wird nichts hochgeladen."
+          }
+        }
+      }
+    },
+    "Your device reads every file in the folder before the slideshow can start. Big folders or photos that are only in iCloud Drive can take a moment." : {
+      "comment" : "Shown while a folder is read, when iCloud sync is on",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dein Gerät liest jede Datei im Ordner, bevor die Diashow starten kann. Große Ordner oder Fotos, die nur in iCloud Drive liegen, können einen Moment dauern."
           }
         }
       }

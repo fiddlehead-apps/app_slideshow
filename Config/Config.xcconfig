@@ -1,0 +1,39 @@
+// Sola Slideshow build configuration, the base for every target.
+//
+// Identifiers derive from BUNDLE_ID_PREFIX:
+//   App:        $(BUNDLE_ID_PREFIX).slideshow
+//   iCloud:     iCloud.$(BUNDLE_ID_PREFIX).slideshow
+//
+// Local overrides go into sola-local.xcconfig next to the repos (not in git); every Sola
+// app reads it if it exists. Typical content:
+//   SOLA_TEAM = ABCDE12345     // the paid team that publishes the apps
+//   SOLA_ICLOUD = YES          // build with iCloud sync (needs a paid team)
+
+BUNDLE_ID_PREFIX = eu.fiddlehead.sola
+SOLA_TEAM = Z4Z62632W2
+DEVELOPMENT_TEAM = $(SOLA_TEAM)
+
+// iCloud sync. NO: no iCloud or push entitlements, so the free Personal Team can sign the app
+// and the sync setting says it isn't available in this build. YES: CloudKit container
+// iCloud.$(BUNDLE_ID_PREFIX).slideshow and push, which only a paid developer team can sign.
+SOLA_ICLOUD = NO
+SOLA_CLOUDKIT_CONTAINER_NO =
+SOLA_CLOUDKIT_CONTAINER_YES = iCloud.$(BUNDLE_ID_PREFIX).slideshow
+SOLA_CLOUDKIT_CONTAINER = $(SOLA_CLOUDKIT_CONTAINER_$(SOLA_ICLOUD))
+SOLA_APP_ENTITLEMENTS_NO =
+SOLA_APP_ENTITLEMENTS_YES = Config/SolaSlideshow-iCloud.entitlements
+SOLA_APP_ENTITLEMENTS = $(SOLA_APP_ENTITLEMENTS_$(SOLA_ICLOUD))
+
+// The Mac app is signed to run locally unless it needs the team for iCloud.
+SOLA_MAC_IDENTITY_NO = -
+SOLA_MAC_IDENTITY_YES = Apple Development
+SOLA_MAC_STYLE_NO = Manual
+SOLA_MAC_STYLE_YES = Automatic
+SOLA_MAC_TEAM_NO =
+SOLA_MAC_TEAM_YES = $(SOLA_TEAM)
+CODE_SIGN_IDENTITY[sdk=macosx*] = $(SOLA_MAC_IDENTITY_$(SOLA_ICLOUD))
+CODE_SIGN_STYLE[sdk=macosx*] = $(SOLA_MAC_STYLE_$(SOLA_ICLOUD))
+DEVELOPMENT_TEAM[sdk=macosx*] = $(SOLA_MAC_TEAM_$(SOLA_ICLOUD))
+PROVISIONING_PROFILE_SPECIFIER[sdk=macosx*] =
+
+#include? "../../sola-local.xcconfig"

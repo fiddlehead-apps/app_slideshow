@@ -51,6 +51,10 @@ nonisolated struct Show: Codable, Identifiable, Equatable, Sendable {
     var hidden = false
     /// Original file names, index-aligned with the saved copies.
     var names: [String] = []
+    /// Last change of name, settings, hidden or last played, for resolving iCloud conflicts.
+    var modified = Date()
+    /// When the images were last saved (picked or picked again), for the same purpose.
+    var content = Date()
 
     init(id: String, name: String, folder: String?, count: Int, settings: ShowSettings) {
         self.id = id
@@ -76,6 +80,8 @@ nonisolated struct Show: Codable, Identifiable, Equatable, Sendable {
         settings = try c.decodeIfPresent(ShowSettings.self, forKey: .settings) ?? ShowSettings()
         hidden = try c.decodeIfPresent(Bool.self, forKey: .hidden) ?? false
         names = try c.decodeIfPresent([String].self, forKey: .names) ?? []
+        modified = try c.decodeIfPresent(Date.self, forKey: .modified) ?? .distantPast
+        content = try c.decodeIfPresent(Date.self, forKey: .content) ?? .distantPast
     }
 
     static func newID() -> String {

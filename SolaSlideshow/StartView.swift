@@ -81,7 +81,7 @@ struct StartView: View {
                 if !shows.isEmpty { librarySection(shows) }
 
                 // Tapping this line five times asks for Face ID and opens the hidden slideshows.
-                Text("Images stay on this device. Nothing is uploaded.")
+                Text(library.cloud.isOn ? "Synced with your iCloud. Nothing else is uploaded." : "Images stay on this device. Nothing is uploaded.")
                     .font(.system(size: 14))
                     .foregroundStyle(Color.muted)
                     .contentShape(.rect)

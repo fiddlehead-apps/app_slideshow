@@ -128,6 +128,7 @@ struct ShowRow: View {
 
     private var subtitle: (text: String, live: Bool) {
         if let s = library.saving, s.id == show.id { return (String(localized: "Saving \(s.saved) of \(s.total)"), true) }
+        if library.isDownloading(show) { return (String(localized: "Loading from iCloud: \(show.saved) of \(show.count)"), true) }
         if !show.done {
             return (show.saved > 0
                     ? String(localized: "\(show.saved) of \(show.count) saved. Choose the folder again to finish.")
