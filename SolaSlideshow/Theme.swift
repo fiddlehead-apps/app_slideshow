@@ -40,35 +40,3 @@ struct BigButtonStyle: ButtonStyle {
             .animation(.easeOut(duration: 0.12), value: configuration.isPressed)
     }
 }
-
-/// Two tilted photo prints, the motif of the app icon.
-struct PrintsIllustration: View {
-    var body: some View {
-        Canvas { ctx, _ in
-            var back = ctx
-            back.concatenate(Self.rotation(9, around: CGPoint(x: 100, y: 80)))
-            back.fill(Path(roundedRect: CGRect(x: 30, y: 28, width: 140, height: 104), cornerRadius: 8), with: .color(.line))
-
-            var front = ctx
-            front.concatenate(Self.rotation(-6, around: CGPoint(x: 92, y: 74)))
-            let frame = Path(roundedRect: CGRect(x: 22, y: 22, width: 140, height: 104), cornerRadius: 8)
-            front.fill(frame, with: .color(.surface))
-            front.stroke(frame, with: .color(.line), lineWidth: 1.5)
-            front.fill(Path(roundedRect: CGRect(x: 32, y: 32, width: 120, height: 84), cornerRadius: 3), with: .color(.ink))
-            front.fill(Path(ellipseIn: CGRect(x: 117, y: 45, width: 18, height: 18)), with: .color(.sun))
-            var hill = Path()
-            hill.addLines([CGPoint(x: 32, y: 116), CGPoint(x: 66, y: 76), CGPoint(x: 90, y: 102),
-                           CGPoint(x: 108, y: 86), CGPoint(x: 152, y: 116)])
-            hill.closeSubpath()
-            front.fill(hill, with: .color(.accent))
-        }
-        .frame(width: 190, height: 150)
-        .accessibilityHidden(true)
-    }
-
-    private static func rotation(_ degrees: Double, around p: CGPoint) -> CGAffineTransform {
-        CGAffineTransform(translationX: p.x, y: p.y)
-            .rotated(by: degrees * .pi / 180)
-            .translatedBy(x: -p.x, y: -p.y)
-    }
-}

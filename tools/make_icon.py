@@ -1,73 +1,113 @@
 """Erzeugt das App-Icon (1024 px) neu: python3 tools/make_icon.py
 
-Gleiches Motiv wie die Web-App (webapp_slideshow/tools/make_icons.py):
-zwei schräg liegende Fotoabzüge auf Blau. Braucht Pillow.
+Zwei Fotoabzüge; die Berglinie steigt an und rollt sich zur Sonne ein.
+Sola-Iconstil: weiße, schlanke Linie auf der Leitfarbe der App; genau eine Linie
+läuft in eine Farnspirale (Fiddlehead) aus. Braucht Pillow.
 """
 import math
 import os
 
 from PIL import Image, ImageDraw
 
-OUT = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
-                   'SolaSlideshow', 'Assets.xcassets', 'AppIcon.appiconset', 'icon-1024.png')
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+OUTS = [
+    os.path.join(ROOT, 'SolaSlideshow/Assets.xcassets/AppIcon.appiconset/icon-1024.png'),
+]
+BRAND = '#2446D8'
+
 SS = 4
-
-BLUE = '#2446D8'
-BACK = '#7E93F2'
-CARD = '#FFFFFF'
-PHOTO = '#16181D'
-HILL = '#8BA3FF'
-SUN = '#FFC857'
-
-BACK_CARD = ((272, 276), (330, 244), 9)
-FRONT_CARD = ((246, 248), (330, 244), -6)
-PHOTO_INSET = 22
-SUN_AT, SUN_R = (82, -46), 20
-HILLS = [(-143, 100), (-63, 6), (-7, 66), (35, 28), (143, 100)]
+SW = 30  # Strichstärke auf der 1024er-Fläche
+INK = '#FFFFFF'
 
 
-def rot(points, center, deg):
-    a = math.radians(deg)
-    c, s = math.cos(a), math.sin(a)
-    cx, cy = center
-    return [(cx + x * c - y * s, cy + x * s + y * c) for x, y in points]
+class Pen:
+    """Sammelt Linienzüge; Kurven werden beim Zeichnen in Punkte aufgelöst."""
+
+    def __init__(self):
+        self.lines = []
+
+    def move(self, x, y):
+        self.lines.append([(x, y)])
+        return self
+
+    def line(self, *pts):
+        for i in range(0, len(pts), 2):
+            self.lines[-1].append((pts[i], pts[i + 1]))
+        return self
+
+    def curve(self, x1, y1, x2, y2, x, y, steps=40):
+        (x0, y0) = self.lines[-1][-1]
+        for i in range(1, steps + 1):
+            t = i / steps
+            a, b, c, d = (1 - t) ** 3, 3 * (1 - t) ** 2 * t, 3 * (1 - t) * t ** 2, t ** 3
+            self.lines[-1].append((a * x0 + b * x1 + c * x2 + d * x, a * y0 + b * y1 + c * y2 + d * y))
+        return self
+
+    def quad(self, cx, cy, x, y, steps=20):
+        (x0, y0) = self.lines[-1][-1]
+        for i in range(1, steps + 1):
+            t = i / steps
+            a, b, c = (1 - t) ** 2, 2 * (1 - t) * t, t ** 2
+            self.lines[-1].append((a * x0 + b * cx + c * x, a * y0 + b * cy + c * y))
+        return self
+
+    def close(self):
+        self.lines[-1].append(self.lines[-1][0])
+        return self
+
+    def spiral(self, x, y, heading, r, turns=3, left=False, steps=60):
+        """Farnspirale ab (x, y); heading in Grad, 0 = nach oben, im Uhrzeigersinn."""
+        h = math.radians(heading)
+        sx = -1 if left else 1
+        place = lambda px, py: (x + sx * px * math.cos(h) - py * math.sin(h),
+                                y + sx * px * math.sin(h) + py * math.cos(h))
+        pts, start = [place(0, 0)], 0.0
+        for i, f in enumerate((1, 0.64, 0.33, 0.12)[:turns]):
+            rr = r * f
+            cx, a0 = (start + rr, math.pi) if i % 2 == 0 else (start - rr, 0.0)
+            for k in range(1, steps + 1):
+                a = a0 + math.pi * k / steps
+                pts.append(place(cx + rr * math.cos(a), rr * math.sin(a)))
+            start = cx + rr * math.cos(a0 + math.pi)
+        self.lines.append(pts)
+        return self
 
 
-def rrect(w, h, r, steps=10):
-    pts = []
-    for qx, qy, start in ((w / 2 - r, -h / 2 + r, -90), (w / 2 - r, h / 2 - r, 0),
-                          (-w / 2 + r, h / 2 - r, 90), (-w / 2 + r, -h / 2 + r, 180)):
-        for i in range(steps + 1):
-            a = math.radians(start + 90 * i / steps)
-            pts.append((qx + r * math.cos(a), qy + r * math.sin(a)))
-    return pts
+def heading(dx, dy):
+    return math.degrees(math.atan2(dx, -dy))
 
 
-def circle(cx, cy, r, steps=48):
-    return [(cx + r * math.cos(2 * math.pi * i / steps), cy + r * math.sin(2 * math.pi * i / steps)) for i in range(steps)]
+def render(motif, background, out, size=1024):
+    big = size * SS
+    k = big / 1024.0
+    w = SW * k
+    im = Image.new('RGB', (big, big), background)  # iOS rundet selbst ab, kein Alpha erlaubt
+    d = ImageDraw.Draw(im)
+    pen = Pen()
+    motif(pen)
+    for pts in pen.lines:
+        pts = [(x * k, y * k) for x, y in pts]
+        # Segment für Segment mit runden Gelenken; joint='curve' franst bei dicken Linien aus
+        for a, b in zip(pts, pts[1:]):
+            d.line((a, b), fill=INK, width=round(w))
+        for x, y in pts:
+            d.ellipse((x - w / 2, y - w / 2, x + w / 2, y + w / 2), fill=INK)
+    im.resize((size, size), Image.LANCZOS).save(out, optimize=True)
+    print('Icon geschrieben nach', out)
 
 
-def scene(size):
-    k = size / 512.0
-    place = lambda pts: [(x * k, y * k) for x, y in pts]
-    (bc, (bw, bh), bd) = BACK_CARD
-    (fc, (fw, fh), fd) = FRONT_CARD
-    pw, ph = fw - 2 * PHOTO_INSET, fh - 2 * PHOTO_INSET
-    return [
-        (BACK, place(rot(rrect(bw, bh, 18), bc, bd))),
-        (CARD, place(rot(rrect(fw, fh, 18), fc, fd))),
-        (PHOTO, place(rot(rrect(pw, ph, 5), fc, fd))),
-        (SUN, place(rot(circle(SUN_AT[0], SUN_AT[1], SUN_R), fc, fd))),
-        (HILL, place(rot(HILLS, fc, fd))),
-    ]
+def motif(p):
+    # hinterer Abzug, der rechts oben hervorschaut
+    p.move(306, 292).line(306, 262).quad(306, 232, 336, 232).line(762, 232).quad(792, 232, 792, 262)
+    p.line(792, 628).quad(792, 658, 762, 658).line(732, 658)
+    # vorderer Abzug
+    p.move(262, 292).line(702, 292).quad(732, 292, 732, 322).line(732, 698).quad(732, 728, 702, 728)
+    p.line(262, 728).quad(232, 728, 232, 698).line(232, 322).quad(232, 292, 262, 292).close()
+    # Berglinie, die zur Sonne wird
+    p.move(232, 668).line(352, 548, 436, 632, 500, 568, 548, 616).curve(600, 580, 628, 540, 630, 486)
+    p.spiral(630, 486, 0, r=66, left=True)
 
 
 if __name__ == '__main__':
-    size = 1024
-    big = size * SS
-    im = Image.new('RGB', (big, big), BLUE)  # iOS rundet selbst ab, kein Alpha erlaubt
-    d = ImageDraw.Draw(im)
-    for color, pts in scene(big):
-        d.polygon(pts, fill=color)
-    im.resize((size, size), Image.LANCZOS).save(OUT, optimize=True)
-    print('Icon geschrieben nach', OUT)
+    for out in OUTS:
+        render(motif, BRAND, out)
