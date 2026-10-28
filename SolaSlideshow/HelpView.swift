@@ -35,7 +35,7 @@ struct HelpView: View {
                     section("While it plays",
                             "Tap the right edge or swipe left for the next image, tap the left edge or swipe right for the previous one. A tap in the middle shows or hides the controls. The screen stays on as long as the slideshow runs.")
                     section("Settings",
-                            "The slider button at the bottom left opens the settings: time per image, shuffle, fill screen (crops the edges instead of showing the whole image), fading between images, and whether the progress bar runs along the bottom edge. Each slideshow remembers its own settings.")
+                            "The slider button at the bottom left opens the settings: time per image, image format (all images, or only portrait or only landscape ones), shuffle, fill screen (crops the edges instead of showing the whole image), fading between images, and whether the progress bar runs along the bottom edge. Each slideshow remembers its own settings.")
                     section("Your slideshows",
                             "Every slideshow you start appears on the start screen and plays again with one tap. For that the app keeps copies of the images at screen size, so the folder is not needed anymore. Choosing the same folder again updates its slideshow instead of adding a second one. Use the pencil to rename a slideshow and the bin to delete it.")
 

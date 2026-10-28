@@ -136,6 +136,11 @@ struct ShowRow: View {
         }
         var bits = [String(localized: "\(show.saved) images"), ShowSettings.intervalLabel(show.settings.interval)]
         if show.settings.shuffle { bits.append(String(localized: "shuffled", comment: "Slideshow plays in random order")) }
+        switch show.settings.orientation {
+        case .all: break
+        case .portrait: bits.append(String(localized: "portrait only", comment: "Part of a slideshow summary: shows only portrait images"))
+        case .landscape: bits.append(String(localized: "landscape only", comment: "Part of a slideshow summary: shows only landscape images"))
+        }
         let separator = String(localized: "summary.separator", defaultValue: ", ",
                                comment: "Separates the parts of a slideshow summary like “8 images, 5 s, shuffled”")
         return (bits.joined(separator: separator), false)

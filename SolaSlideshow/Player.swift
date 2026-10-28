@@ -34,6 +34,8 @@ final class Player {
     private(set) var playing = true
     private(set) var loading = false
     private(set) var uiVisible = true
+    /// Nothing in the slideshow has the chosen format (portrait or landscape only).
+    private(set) var noMatches = false
     var sheetOpen = false {
         didSet {
             guard sheetOpen != oldValue else { return }
@@ -51,6 +53,10 @@ final class Player {
     private var token = 0
     private var loads: [Int: Task<UIImage?, Never>] = [:]
     private var bad = Set<Int>()
+    /// Just-picked images found to have the wrong format once loaded (their format isn't known before).
+    private var skipped = Set<Int>()
+    /// Formats of a saved slideshow's images, loaded when a format is chosen.
+    private var shapes: [ImageShape?]?
     // Time shown so far for the current image: `accumulated` plus the time since `runningSince`.
     private var accumulated: TimeInterval = 0
     private(set) var runningSince: Date?
@@ -68,12 +74,14 @@ final class Player {
         loads.values.forEach { $0.cancel() }
         loads = [:]
         bad = []
+        skipped = []
+        shapes = nil
+        noMatches = false
         self.source = source
         self.label = label
         self.showID = showID
         self.settings = settings
         current = nil
-        buildOrder(keeping: nil)
         sheetOpen = false
         playing = true
         accumulated = 0
@@ -81,7 +89,7 @@ final class Player {
         isOpen = true
         UIApplication.shared.isIdleTimerDisabled = true
         showUI()
-        show(pos)
+        applyOrder(keeping: nil)
     }
 
     func close() {
@@ -97,6 +105,8 @@ final class Player {
         current = nil
         showID = nil
         loading = false
+        noMatches = false
+        shapes = nil
         runningSince = nil
         settings = library.defaults
         UIApplication.shared.isIdleTimerDisabled = false
@@ -133,16 +143,70 @@ final class Player {
 
     // MARK: Navigation
 
-    private func buildOrder(keeping current: Int?) {
+    /// The images to play, in play order. A saved slideshow leaves out images of the other
+    /// format right away; just-picked images are skipped once they turn out to be the wrong one.
+    private func buildOrder(keeping keep: Int?) {
         let n = source?.count ?? 0
-        order = Array(0..<n)
+        let filter = settings.orientation
+        if filter != .all, case .stored = source, let shapes {
+            order = (0..<n).filter { $0 < shapes.count && filter.allows(shapes[$0]) }
+        } else {
+            order = (0..<n).filter { !skipped.contains($0) }
+        }
         if settings.shuffle {
             order.shuffle()
-            if let current, let k = order.firstIndex(of: current) { order.swapAt(0, k) }
+            if let keep, let k = order.firstIndex(of: keep) { order.swapAt(0, k) }
             pos = 0
         } else {
-            pos = current ?? 0
+            // The kept image, or the next one after it that is still in the slideshow.
+            pos = keep.flatMap { k in order.firstIndex { $0 >= k } } ?? 0
         }
+    }
+
+    /// Builds the order and shows its first image. With a format chosen, a saved slideshow
+    /// first needs its images' formats, which takes a moment the first time.
+    private func applyOrder(keeping keep: Int?) {
+        token += 1
+        let my = token
+        if settings.orientation != .all, case .stored(let id, let n) = source, (shapes?.count ?? -1) < n {
+            loading = true
+            updateClock()
+            Task {
+                let s = await library.shapes(id, count: n)
+                guard my == token else { return }
+                shapes = s
+                finishOrder(keeping: keep)
+            }
+        } else {
+            finishOrder(keeping: keep)
+        }
+    }
+
+    private func finishOrder(keeping keep: Int?) {
+        if let slide = current, slide.index == keep, case .items = source,
+           !settings.orientation.allows(slide.image.shape) {
+            skipped.insert(slide.index)
+        }
+        buildOrder(keeping: keep)
+        noMatches = order.isEmpty && (source?.count ?? 0) > 0
+        if noMatches {
+            showNoMatches()
+        } else if let slide = current, !order.isEmpty, order[pos] == slide.index {
+            // The image on screen stays: just carry on from here.
+            loading = false
+            updateClock()
+            preload()
+        } else {
+            show(pos)
+        }
+    }
+
+    private func showNoMatches() {
+        noMatches = true
+        loading = false
+        withAnimation { current = nil }
+        updateClock()
+        showUI()
     }
 
     private func wrap(_ p: Int) -> Int {
@@ -163,8 +227,15 @@ final class Player {
     }
 
     private func show(_ p: Int) {
-        guard !order.isEmpty else { return }
+        guard !order.isEmpty, !noMatches else { return }
+        if order.allSatisfy({ bad.contains($0) || skipped.contains($0) }) {
+            // Only unreadable ones left closes the slideshow, see below.
+            if !skipped.isEmpty { showNoMatches() }
+            return
+        }
         pos = wrap(p)
+        // Past images already known to be unreadable or of the wrong format.
+        while bad.contains(order[pos]) || skipped.contains(order[pos]) { pos = wrap(pos + dir) }
         token += 1
         let my = token, idx = order[pos]
         loading = true
@@ -175,12 +246,17 @@ final class Player {
             loading = false
             guard let img else {
                 bad.insert(idx)
-                if bad.count >= order.count {
+                if order.allSatisfy(bad.contains) {
                     close()
                     onFailure?(String(localized: "None of these images could be opened on this device."))
                 } else {
                     show(pos + dir)
                 }
+                return
+            }
+            if case .items = source, !settings.orientation.allows(img.shape) {
+                skipped.insert(idx)
+                show(pos + dir)
                 return
             }
             withAnimation(settings.fade ? .easeInOut(duration: 0.9) : nil) {
@@ -230,7 +306,7 @@ final class Player {
 
     // MARK: Timing
 
-    private var shouldRun: Bool { isOpen && playing && !loading && !sheetOpen && order.count > 1 }
+    private var shouldRun: Bool { isOpen && playing && !loading && !sheetOpen && !noMatches && order.count > 1 }
 
     /// How much of the current image's time has passed, 0…1.
     func progress(at date: Date) -> Double {
@@ -285,7 +361,11 @@ final class Player {
     func change(_ edit: (inout ShowSettings) -> Void) {
         let old = settings
         edit(&settings)
-        if settings.shuffle != old.shuffle, !order.isEmpty {
+        if settings.orientation != old.orientation {
+            skipped = []
+            noMatches = false
+            applyOrder(keeping: current?.index)
+        } else if settings.shuffle != old.shuffle, !order.isEmpty {
             buildOrder(keeping: order[pos])
             preload()
         }

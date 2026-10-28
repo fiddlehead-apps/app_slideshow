@@ -1,5 +1,33 @@
 import Foundation
 
+/// Which images a slideshow shows, by their format.
+nonisolated enum OrientationFilter: String, Codable, CaseIterable, Sendable {
+    case all, portrait, landscape
+
+    /// Square images, and images whose format isn't known, only show with `.all`.
+    func allows(_ shape: ImageShape?) -> Bool {
+        switch self {
+        case .all: true
+        case .portrait: shape == .portrait
+        case .landscape: shape == .landscape
+        }
+    }
+}
+
+/// An image's format as it appears on screen, after rotation.
+nonisolated enum ImageShape: String, Codable, Sendable {
+    case portrait, landscape, square
+
+    /// Within 2 % of each other counts as square.
+    init(width: Int, height: Int) {
+        if abs(width - height) * 50 <= max(width, height) {
+            self = .square
+        } else {
+            self = height > width ? .portrait : .landscape
+        }
+    }
+}
+
 /// Playback options. Stored globally as the defaults for new slideshows,
 /// and per slideshow so each one starts the way it was last played.
 nonisolated struct ShowSettings: Codable, Equatable, Sendable {
@@ -12,6 +40,7 @@ nonisolated struct ShowSettings: Codable, Equatable, Sendable {
     var fill = false
     var fade = true
     var progress = true
+    var orientation = OrientationFilter.all
 
     init() {}
 
@@ -24,6 +53,8 @@ nonisolated struct ShowSettings: Codable, Equatable, Sendable {
         fill = try c.decodeIfPresent(Bool.self, forKey: .fill) ?? d.fill
         fade = try c.decodeIfPresent(Bool.self, forKey: .fade) ?? d.fade
         progress = try c.decodeIfPresent(Bool.self, forKey: .progress) ?? d.progress
+        // try?: a value from a newer version of the app falls back to showing all images.
+        orientation = (try? c.decodeIfPresent(OrientationFilter.self, forKey: .orientation)) ?? d.orientation
         if !Self.intervalRange.contains(interval) { interval = d.interval }
     }
 

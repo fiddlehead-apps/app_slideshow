@@ -123,6 +123,20 @@ nonisolated enum Images {
         return UIImage(cgImage: cg)
     }
 
+    /// The formats of saved images, read from the file headers without decoding the pixels.
+    /// nil for a file that is missing or unreadable.
+    @concurrent static func shapes(of urls: [URL]) async -> [ImageShape?] {
+        urls.map { url in
+            guard let src = CGImageSourceCreateWithURL(url as CFURL, nil),
+                  let props = CGImageSourceCopyPropertiesAtIndex(src, 0, nil) as? [CFString: Any],
+                  let w = props[kCGImagePropertyPixelWidth] as? Int,
+                  let h = props[kCGImagePropertyPixelHeight] as? Int, w > 0, h > 0 else { return nil }
+            // EXIF orientations 5 to 8 turn the image by 90°.
+            let turned = (props[kCGImagePropertyOrientation] as? Int).map { (5...8).contains($0) } ?? false
+            return turned ? ImageShape(width: h, height: w) : ImageShape(width: w, height: h)
+        }
+    }
+
     @concurrent static func display(url: URL, maxPixel: Int) async -> UIImage? {
         guard let src = CGImageSourceCreateWithURL(url as CFURL, nil),
               let cg = thumbnail(src, maxPixel: maxPixel) else { return nil }
@@ -202,4 +216,9 @@ nonisolated enum Images {
         guard CGImageDestinationFinalize(dest) else { throw ImageError.encodeFailed }
         return out as Data
     }
+}
+
+extension UIImage {
+    /// Display images are already turned upright, so their size is what's on screen.
+    var shape: ImageShape { ImageShape(width: Int(size.width), height: Int(size.height)) }
 }

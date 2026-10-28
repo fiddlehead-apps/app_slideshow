@@ -85,12 +85,33 @@
         }
       }
     },
+    "All" : {
+      "comment" : "Image format setting: show every image",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Alle"
+          }
+        }
+      }
+    },
     "Cancel" : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Abbrechen"
+          }
+        }
+      }
+    },
+    "Choose a different image format in the settings." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wähle in den Einstellungen ein anderes Bildformat."
           }
         }
       }
@@ -288,6 +309,17 @@
         }
       }
     },
+    "Image format" : {
+      "comment" : "Heading of the setting that shows all images, or only portrait or only landscape ones",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bildformat"
+          }
+        }
+      }
+    },
     "Images stay on this device. Nothing is uploaded." : {
       "comment" : "Footer on the start screen",
       "localizations" : {
@@ -309,12 +341,78 @@
         }
       }
     },
+    "Landscape" : {
+      "comment" : "Image format setting: only images wider than tall",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Querformat"
+          }
+        }
+      }
+    },
+    "landscape only" : {
+      "comment" : "Part of a slideshow summary: shows only landscape images",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "nur Querformat"
+          }
+        }
+      }
+    },
     "Minutes" : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Minuten"
+          }
+        }
+      }
+    },
+    "No landscape images in this slideshow." : {
+      "comment" : "Shown instead of the slideshow when the image format setting leaves nothing to show",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "In dieser Diashow gibt es keine Bilder im Querformat."
+          }
+        }
+      }
+    },
+    "No portrait images in this slideshow." : {
+      "comment" : "Shown instead of the slideshow when the image format setting leaves nothing to show",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "In dieser Diashow gibt es keine Bilder im Hochformat."
+          }
+        }
+      }
+    },
+    "Portrait" : {
+      "comment" : "Image format setting: only images taller than wide",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hochformat"
+          }
+        }
+      }
+    },
+    "portrait only" : {
+      "comment" : "Part of a slideshow summary: shows only portrait images",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "nur Hochformat"
           }
         }
       }
@@ -773,12 +871,12 @@
         }
       }
     },
-    "The slider button at the bottom left opens the settings: time per image, shuffle, fill screen (crops the edges instead of showing the whole image), fading between images, and whether the progress bar runs along the bottom edge. Each slideshow remembers its own settings." : {
+    "The slider button at the bottom left opens the settings: time per image, image format (all images, or only portrait or only landscape ones), shuffle, fill screen (crops the edges instead of showing the whole image), fading between images, and whether the progress bar runs along the bottom edge. Each slideshow remembers its own settings." : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Der Regler-Knopf unten links öffnet die Einstellungen: Zeit pro Bild, zufällige Reihenfolge, Bildschirm füllen (schneidet die Ränder ab, statt das ganze Bild zu zeigen), Überblenden und ob der Fortschrittsbalken am unteren Rand mitläuft. Jede Diashow merkt sich ihre eigenen Einstellungen."
+            "value" : "Der Regler-Knopf unten links öffnet die Einstellungen: Zeit pro Bild, Bildformat (alle Bilder oder nur Hochformat oder nur Querformat), zufällige Reihenfolge, Bildschirm füllen (schneidet die Ränder ab, statt das ganze Bild zu zeigen), Überblenden und ob der Fortschrittsbalken am unteren Rand mitläuft. Jede Diashow merkt sich ihre eigenen Einstellungen."
           }
         }
       }

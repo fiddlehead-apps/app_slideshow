@@ -9,6 +9,7 @@ import UIKit
 ///   Slideshows/library.json        the list of `Show`s
 ///   Slideshows/<id>/000000.img     saved copies, numbered in play order
 ///   Slideshows/<id>/thumb.jpg      168 px square thumbnail
+///   Slideshows/<id>/shapes.json    format of each saved image (portrait/landscape/square)
 ///   Slideshows/CloudSync.json      iCloud sync state (only once sync was turned on)
 @Observable
 final class Library {
@@ -51,6 +52,13 @@ final class Library {
     private var jobNumber = 0
     private var jobOwner: [String: Int] = [:]
     private var thumbs: [String: (version: Date, image: UIImage)] = [:]
+    /// Formats of the saved images, valid for one version of the images (`Show.content`).
+    private var shapeCache: [String: ShapeFile] = [:]
+
+    private struct ShapeFile: Codable {
+        var content: Date
+        var shapes: [ImageShape?]
+    }
 
     init() {
         var support = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
@@ -89,6 +97,7 @@ final class Library {
         directory(for: id).appendingPathComponent(String(format: "%06d.img", index))
     }
     private func thumbURL(_ id: String) -> URL { directory(for: id).appendingPathComponent("thumb.jpg") }
+    private func shapesURL(_ id: String) -> URL { directory(for: id).appendingPathComponent("shapes.json") }
 
     private func persist() {
         guard let d = try? JSONEncoder().encode(shows) else { return }
@@ -106,6 +115,27 @@ final class Library {
     }
 
     func show(_ id: String) -> Show? { shows.first { $0.id == id } }
+
+    /// The formats of the first `count` saved images, for showing only portrait or landscape
+    /// ones. Read from the files once per version of the images and kept on this device
+    /// (not synced: images that come from iCloud are read here too).
+    func shapes(_ id: String, count: Int) async -> [ImageShape?] {
+        guard let s = show(id) else { return [] }
+        let file = shapeCache[id] ?? (try? Data(contentsOf: shapesURL(id))).flatMap { try? JSONDecoder().decode(ShapeFile.self, from: $0) }
+        var shapes = file?.content == s.content ? file!.shapes : []
+        if shapes.count < count { shapes += Array(repeating: nil, count: count - shapes.count) }
+        // Unknown ones too: the file may have been missing or still arriving last time.
+        let missing = (0..<count).filter { shapes[$0] == nil }
+        guard !missing.isEmpty else { return Array(shapes.prefix(count)) }
+        let read = await Images.shapes(of: missing.map { imageURL(id, $0) })
+        for (i, shape) in zip(missing, read) { shapes[i] = shape }
+        // Images saved again meanwhile: these shapes belong to the old ones, don't keep them.
+        guard show(id)?.content == s.content else { return Array(shapes.prefix(count)) }
+        let updated = ShapeFile(content: s.content, shapes: shapes)
+        shapeCache[id] = updated
+        if let d = try? JSONEncoder().encode(updated) { try? d.write(to: shapesURL(id), options: .atomic) }
+        return Array(shapes.prefix(count))
+    }
 
     func thumb(for s: Show) -> UIImage? {
         guard s.hasThumb else { return nil }
@@ -160,6 +190,7 @@ final class Library {
         let images = show(id).map { max($0.saved, $0.count) } ?? 0
         shows.removeAll { $0.id == id }
         thumbs[id] = nil
+        shapeCache[id] = nil
         persist()
         try? FileManager.default.removeItem(at: directory(for: id))
         cloud.deleted([id] + (0..<images).map { Self.imageRecord(id, $0) })
@@ -410,6 +441,7 @@ extension Library: CloudSyncStore {
             }
             shows.removeAll { $0.id == sid }
             thumbs[sid] = nil
+            shapeCache[sid] = nil
             try? FileManager.default.removeItem(at: directory(for: sid))
         case .image(let sid, let index):
             try? FileManager.default.removeItem(at: imageURL(sid, index))

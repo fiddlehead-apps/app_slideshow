@@ -38,6 +38,21 @@ struct PlayerView: View {
                 ProgressView().tint(.white).controlSize(.large)
             }
 
+            if player.noMatches {
+                VStack(spacing: 8) {
+                    (player.settings.orientation == .portrait
+                        ? Text("No portrait images in this slideshow.")
+                        : Text("No landscape images in this slideshow."))
+                        .font(.system(size: 18, weight: .semibold))
+                    Text("Choose a different image format in the settings.")
+                        .font(.system(size: 15))
+                        .opacity(0.7)
+                }
+                .multilineTextAlignment(.center)
+                .foregroundStyle(.white)
+                .padding(32)
+            }
+
             // Taps and swipes on the picture: the outer bands go back/forward,
             // the middle shows or hides the controls.
             GeometryReader { geo in
@@ -293,6 +308,19 @@ private struct SettingsSheet: View {
                     .onChange(of: customUnit) { applyCustom() }
                 }
 
+                Text("Image format")
+                    .font(.system(size: 15))
+                    .opacity(0.7)
+                    .padding(.bottom, 8)
+                FlowLayout(spacing: 8) {
+                    ForEach(OrientationFilter.allCases, id: \.self) { o in
+                        chip(o.label, on: current.orientation == o) {
+                            player.change { $0.orientation = o }
+                        }
+                    }
+                }
+                .padding(.bottom, 18)
+
                 toggle("Shuffle", nil, \.shuffle, current)
                 toggle("Fill screen", "Crops edges instead of showing the whole image", \.fill, current)
                 toggle("Fade between images", nil, \.fade, current)
@@ -314,7 +342,7 @@ private struct SettingsSheet: View {
         .onAppear {
             if !ShowSettings.intervals.contains(current.interval) { startCustom(current.interval, focus: false) }
         }
-        .presentationDetents([.height(660), .large])
+        .presentationDetents([.height(740), .large])
         .presentationDragIndicator(.visible)
         .presentationBackground(.ultraThinMaterial)
         .preferredColorScheme(.dark)
@@ -421,5 +449,15 @@ private struct FlowLayout: Layout {
             rows[rows.count - 1] = row
         }
         return rows
+    }
+}
+
+extension OrientationFilter {
+    var label: String {
+        switch self {
+        case .all: String(localized: "All", comment: "Image format setting: show every image")
+        case .portrait: String(localized: "Portrait", comment: "Image format setting: only images taller than wide")
+        case .landscape: String(localized: "Landscape", comment: "Image format setting: only images wider than tall")
+        }
     }
 }
