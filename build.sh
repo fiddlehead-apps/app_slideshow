@@ -162,7 +162,7 @@ case "$MODE" in
     if [ "$MAC" = 1 ] && step "$NAME (Mac)" "$OUT/$APP_KEY-mac.log" \
         xcodebuild -project "$PROJECT" -scheme "$SCHEME" -configuration Release \
           -destination 'platform=macOS,variant=Mac Catalyst' -derivedDataPath "$OUT/$APP_KEY-mac" \
-          "${SETTINGS[@]}" build; then
+          -allowProvisioningUpdates "${SETTINGS[@]}" build; then
       [ "$INSTALL" = 1 ] && install_mac
     fi
     ;;
