@@ -30,6 +30,9 @@ struct RootView: View {
         let lib = Library()
         _library = State(initialValue: lib)
         _player = State(initialValue: Player(library: lib))
+        #if DEBUG
+        DemoData.seedIfRequested(lib)
+        #endif
     }
 
     var body: some View {
