@@ -199,16 +199,23 @@ final class Library {
     // MARK: Saving copies
 
     /// Creates the entry for a fresh pick (or reuses the one for the same
-    /// folder) and starts copying the images in the background. Returns the
+    /// folder or album) and starts copying the images in the background. Returns the
     /// entry so the player can adopt its settings right away.
     @discardableResult
-    func save(_ items: [SourceItem], name: String, folder: String?) -> Show {
+    func save(_ items: [SourceItem], name: String, folder: String?, album: String? = nil) -> Show {
         jobNumber += 1
         let my = jobNumber
         let now = Date()
         var show: Show
         var oldImages = 0  // images of the old version, some of them may have to go from iCloud
-        if let folder, let existing = shows.first(where: { $0.folder == folder }) {
+        let same: Show? = if let album {
+            shows.first { $0.album == album }
+        } else if let folder {
+            shows.first { $0.folder == folder }
+        } else {
+            nil
+        }
+        if let existing = same {
             show = existing
             oldImages = max(existing.saved, existing.count)
             show.count = items.count
@@ -224,6 +231,7 @@ final class Library {
             modify(show.id) { $0 = show }
         } else {
             show = Show(id: Show.newID(), name: name, folder: folder, count: items.count, settings: defaults)
+            show.album = album
             shows.append(show)
         }
         persist()
@@ -352,6 +360,7 @@ extension Library: CloudSyncStore {
             let e = r.encryptedValues
             e["name"] = s.name
             e["folder"] = s.folder
+            e["album"] = s.album
             e["names"] = try? JSONEncoder().encode(s.names)
             e["settings"] = try? JSONEncoder().encode(s.settings)
             e["hidden"] = s.hidden
@@ -398,6 +407,7 @@ extension Library: CloudSyncStore {
             var s = show(sid) ?? Show(id: sid, name: name, folder: nil, count: 0, settings: settings)
             s.name = name
             s.folder = e["folder"] as? String
+            s.album = e["album"] as? String
             s.names = (e["names"] as? Data).flatMap { try? JSONDecoder().decode([String].self, from: $0) } ?? []
             s.settings = settings
             s.hidden = e["hidden"] as? Bool ?? false

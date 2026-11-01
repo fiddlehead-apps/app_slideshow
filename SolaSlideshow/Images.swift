@@ -22,11 +22,13 @@ nonisolated final class FolderAccess: Sendable {
 nonisolated enum SourceItem: Sendable {
     case file(URL, name: String, access: FolderAccess?)
     case photo(PhotosPickerItem)
+    /// An image from an album in Photos, by its `PHAsset.localIdentifier`.
+    case asset(String)
 
     var name: String {
         switch self {
         case .file(_, let name, _): name
-        case .photo: ""
+        case .photo, .asset: ""
         }
     }
 
@@ -39,6 +41,8 @@ nonisolated enum SourceItem: Sendable {
         case .photo(let item):
             guard let d = try await item.loadTransferable(type: Data.self) else { throw ImageError.unreadable }
             return d
+        case .asset(let id):
+            return try await PhotoAlbums.data(forAsset: id)
         }
     }
 

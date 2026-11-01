@@ -25,6 +25,8 @@ struct RootView: View {
     @State private var importFolder = true
     @State private var pickingPhotos = false
     @State private var photoSelection: [PhotosPickerItem] = []
+    @State private var pickingAlbum = false
+    @State private var albumAccessLimited = false
 
     init() {
         let lib = Library()
@@ -65,6 +67,12 @@ struct RootView: View {
                       allowedContentTypes: importFolder ? [.folder] : [.image],
                       allowsMultipleSelection: !importFolder) { result in
             handleImport(result)
+        }
+        .sheet(isPresented: $pickingAlbum) {
+            AlbumPicker(limited: albumAccessLimited) { album in
+                pickingAlbum = false
+                openAlbum(album)
+            }
         }
         .photosPicker(isPresented: $pickingPhotos, selection: $photoSelection, matching: .images,
                       preferredItemEncoding: .current)
@@ -118,8 +126,43 @@ struct RootView: View {
         case .files:
             importFolder = false
             importing = true
+        case .album:
+            Task {
+                switch await PhotoAlbums.requestAccess() {
+                case .full:
+                    albumAccessLimited = false
+                    pickingAlbum = true
+                case .limited:
+                    albumAccessLimited = true
+                    pickingAlbum = true
+                case .denied:
+                    #if targetEnvironment(macCatalyst)
+                    message = .init(text: String(localized: "Sola Slideshow has no access to your photos. To choose an album, turn on Sola Slideshow in System Settings › Privacy & Security › Photos."), isError: true)
+                    #else
+                    message = .init(text: String(localized: "Sola Slideshow has no access to your photos. To choose an album, allow access to all photos in the Settings app under Apps › Sola Slideshow › Photos."), isError: true)
+                    #endif
+                }
+            }
         case .photos:
             pickingPhotos = true
+        }
+    }
+
+    private func openAlbum(_ album: PhotoAlbum) {
+        guard waiting == nil else { return }
+        message = nil
+        waiting = .init(title: String(localized: "Opening your album…"),
+                        text: String(localized: "Photos that are only in iCloud are downloaded while the slideshow plays."),
+                        since: Date())
+        scanTask = Task {
+            let items = await PhotoAlbums.items(inAlbum: album.id)
+            guard !Task.isCancelled else { return }
+            waiting = nil
+            if items.isEmpty {
+                message = .init(text: String(localized: "That album has no photos."), isError: true)
+            } else {
+                begin(items, folder: nil, album: album.id, name: album.title)
+            }
         }
     }
 
@@ -161,17 +204,20 @@ struct RootView: View {
 
     // MARK: Playing
 
-    private func begin(_ items: [SourceItem], folder: String?) {
+    private func begin(_ items: [SourceItem], folder: String?, album: String? = nil, name: String? = nil) {
         message = nil
         let today = Date().formatted(.dateTime.day().month(.abbreviated))
-        let label = folder ?? String(localized: "Photos, \(today)", comment: "Default name for a slideshow of picked images")
-        let show = library.save(items, name: label, folder: folder)
+        let label = name.flatMap { $0.isEmpty ? nil : $0 } ?? folder
+            ?? String(localized: "Photos, \(today)", comment: "Default name for a slideshow of picked images")
+        let show = library.save(items, name: label, folder: folder, album: album)
         player.start(.items(items), label: show.name, showID: show.id, settings: show.settings)
     }
 
     private func openSaved(_ show: Show) {
         guard let s = library.show(show.id), s.saved > 0 else {
-            message = .init(text: String(localized: "Nothing from this slideshow is saved yet. Choose the folder again to save it."), isError: true)
+            message = .init(text: show.album != nil
+                            ? String(localized: "Nothing from this slideshow is saved yet. Choose the album again to save it.")
+                            : String(localized: "Nothing from this slideshow is saved yet. Choose the folder again to save it."), isError: true)
             return
         }
         message = nil

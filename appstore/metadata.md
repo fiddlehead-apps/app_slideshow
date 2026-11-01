@@ -52,7 +52,7 @@ foto,bilderrahmen,ordner,bilder,vollbild,zufall,überblenden,galerie,präsentati
 ```
 Sola Diashow zeigt deine Fotos als ruhige, schöne Vollbild-Diashow.
 
-Wähl einen Ordner in der Dateien-App – iCloud Drive, „Auf meinem iPhone“ oder ein anderer Speicherort – und alle Bilder darin und in den Unterordnern laufen der Reihe nach ab. Oder such dir einzelne Fotos aus deiner Mediathek aus.
+Wähl einen Ordner in der Dateien-App – iCloud Drive, „Auf meinem iPhone“ oder ein anderer Speicherort – und alle Bilder darin und in den Unterordnern laufen der Reihe nach ab. Oder nimm ein ganzes Album aus der Fotos-App oder such dir einzelne Fotos aus deiner Mediathek aus.
 
 SO, WIE DU ES MAGST
 • Zeit pro Bild von 3 Sekunden bis 1 Minute.
@@ -98,7 +98,7 @@ photo,picture,frame,folder,fullscreen,shuffle,crossfade,gallery,presentation,ima
 ```
 Sola Slideshow shows your photos as a calm, beautiful full-screen slideshow.
 
-Choose a folder in the Files app – iCloud Drive, On My iPhone or any other location – and every image in it and its subfolders plays in order. Or pick individual photos from your library.
+Choose a folder in the Files app – iCloud Drive, On My iPhone or any other location – and every image in it and its subfolders plays in order. Or play a whole album from the Photos app, or pick individual photos from your library.
 
 THE WAY YOU LIKE IT
 • Time per image from 3 seconds to 1 minute.

@@ -1,6 +1,6 @@
 import SwiftUI
 
-enum PickKind { case folder, photos, files }
+enum PickKind { case folder, album, photos, files }
 
 /// "Pick photos or files": a menu that asks where the images come from.
 struct PickPhotosOrFilesMenu<Label: View>: View {
@@ -19,7 +19,7 @@ struct PickPhotosOrFilesMenu<Label: View>: View {
 
 struct PlayerView: View {
     @Bindable var player: Player
-    /// "Choose another folder" / "Pick photos or files" from the settings sheet.
+    /// "Choose another folder" / "Choose another album" / "Pick photos or files" from the settings sheet.
     var onPick: (PickKind) -> Void
 
     @State private var pendingPick: PickKind?
@@ -328,6 +328,7 @@ private struct SettingsSheet: View {
 
                 VStack(spacing: 10) {
                     sheetButton("Choose another folder") { onPick(.folder) }
+                    sheetButton("Choose another album") { onPick(.album) }
                     PickPhotosOrFilesMenu(onPick: onPick) { sheetLabel("Pick photos or files") }
                         .foregroundStyle(.white)
                 }
@@ -342,7 +343,7 @@ private struct SettingsSheet: View {
         .onAppear {
             if !ShowSettings.intervals.contains(current.interval) { startCustom(current.interval, focus: false) }
         }
-        .presentationDetents([.height(740), .large])
+        .presentationDetents([.height(800), .large])
         .presentationDragIndicator(.visible)
         .presentationBackground(.ultraThinMaterial)
         .preferredColorScheme(.dark)

@@ -51,6 +51,23 @@
           }
         }
       }
+    },
+    "NSPhotoLibraryUsageDescription" : {
+      "comment" : "Why the app asks for access to Photos",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Damit du ein ganzes Album aus Fotos als Diashow abspielen kannst."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "So you can play a whole album from Photos as a slideshow."
+          }
+        }
+      }
     }
   },
   "version" : "1.0"

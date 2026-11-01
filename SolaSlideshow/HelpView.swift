@@ -29,15 +29,15 @@ struct HelpView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 22) {
                     section("What it does",
-                            "Sola Slideshow plays every image in a folder – or photos you pick – full screen.")
+                            "Sola Slideshow plays every image in a folder or a Photos album – or photos you pick – full screen.")
                     section("Start a slideshow",
-                            "Tap **Choose folder** and pick a folder in Files, for example in iCloud Drive or On My iPhone. Every image in it and in its subfolders plays in name order. With **Pick photos or files** you choose single images from Photos or Files instead.")
+                            "Tap **Choose folder** and pick a folder in Files, for example in iCloud Drive or On My iPhone. Every image in it and in its subfolders plays in name order. **Choose album** plays every photo of an album in Photos, in the album’s order. With **Pick photos or files** you choose single images from Photos or Files instead.")
                     section("While it plays",
                             "Tap the right edge or swipe left for the next image, tap the left edge or swipe right for the previous one. A tap in the middle shows or hides the controls. The screen stays on as long as the slideshow runs.")
                     section("Settings",
                             "The slider button at the bottom left opens the settings: time per image, image format (all images, or only portrait or only landscape ones), shuffle, fill screen (crops the edges instead of showing the whole image), fading between images, and whether the progress bar runs along the bottom edge. Each slideshow remembers its own settings.")
                     section("Your slideshows",
-                            "Every slideshow you start appears on the start screen and plays again with one tap. For that the app keeps copies of the images at screen size, so the folder is not needed anymore. Choosing the same folder again updates its slideshow instead of adding a second one. Use the pencil to rename a slideshow and the bin to delete it.")
+                            "Every slideshow you start appears on the start screen and plays again with one tap. For that the app keeps copies of the images at screen size, so the folder or album is not needed anymore. Choosing the same folder or album again updates its slideshow instead of adding a second one. Use the pencil to rename a slideshow and the bin to delete it.")
 
                     // Tapping this paragraph five times asks for Face ID and opens the hidden slideshows.
                     section("Private",

@@ -2,7 +2,7 @@ import PhotosUI
 import SwiftUI
 import UniformTypeIdentifiers
 
-/// Start screen: pick a folder or photos, and the list of saved slideshows.
+/// Start screen: pick a folder, an album or photos, and the list of saved slideshows.
 struct StartView: View {
     let library: Library
     let player: Player
@@ -46,7 +46,7 @@ struct StartView: View {
                     .padding(.bottom, 16)
                     .accessibilityAddTraits(.isHeader)
 
-                Text("Pick a folder in Files and every image in it plays full screen.")
+                Text("Pick a folder in Files or an album in Photos and every image in it plays full screen.")
                     .font(.system(size: 18))
                     .lineSpacing(4)
                     .foregroundStyle(Color.muted)
@@ -58,6 +58,11 @@ struct StartView: View {
                         Label("Choose folder", systemImage: "folder")
                     }
                     .buttonStyle(BigButtonStyle(primary: true))
+
+                    Button { onPick(.album) } label: {
+                        Label("Choose album", systemImage: "rectangle.stack")
+                    }
+                    .buttonStyle(BigButtonStyle(primary: false))
 
                     PickPhotosOrFilesMenu(onPick: onPick) {
                         Label("Pick photos or files", systemImage: "photo")

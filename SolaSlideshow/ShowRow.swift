@@ -130,6 +130,11 @@ struct ShowRow: View {
         if let s = library.saving, s.id == show.id { return (String(localized: "Saving \(s.saved) of \(s.total)"), true) }
         if library.isDownloading(show) { return (String(localized: "Loading from iCloud: \(show.saved) of \(show.count)"), true) }
         if !show.done {
+            if show.album != nil {
+                return (show.saved > 0
+                        ? String(localized: "\(show.saved) of \(show.count) saved. Choose the album again to finish.")
+                        : String(localized: "Not saved yet. Choose the album again."), false)
+            }
             return (show.saved > 0
                     ? String(localized: "\(show.saved) of \(show.count) saved. Choose the folder again to finish.")
                     : String(localized: "Not saved yet. Choose the folder again."), false)

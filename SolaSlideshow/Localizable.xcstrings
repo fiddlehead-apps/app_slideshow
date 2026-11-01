@@ -1,6 +1,47 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "%lld albums" : {
+      "comment" : "Number of albums in a folder of albums in Photos",
+      "localizations" : {
+        "de" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld Album"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld Alben"
+                }
+              }
+            }
+          }
+        },
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld album"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld albums"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "%lld images" : {
       "comment" : "Number of images in a saved slideshow",
       "localizations" : {
@@ -64,6 +105,17 @@
         }
       }
     },
+    "%lld of %lld saved. Choose the album again to finish." : {
+      "comment" : "Saved slideshow from a Photos album, not all images saved yet",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld von %lld gespeichert. Wähle das Album noch einmal, um den Rest zu speichern."
+          }
+        }
+      }
+    },
     "%lld of %lld saved. Choose the folder again to finish." : {
       "localizations" : {
         "de" : {
@@ -112,6 +164,39 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Wähle in den Einstellungen ein anderes Bildformat."
+          }
+        }
+      }
+    },
+    "Choose album" : {
+      "comment" : "Button that opens the list of albums in Photos",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Album wählen"
+          }
+        }
+      }
+    },
+    "Choose an album" : {
+      "comment" : "Title of the list of albums in Photos",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Album wählen"
+          }
+        }
+      }
+    },
+    "Choose another album" : {
+      "comment" : "Button in the slideshow settings: pick a different album in Photos",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Anderes Album wählen"
           }
         }
       }
@@ -222,12 +307,12 @@
         }
       }
     },
-    "Every slideshow you start appears on the start screen and plays again with one tap. For that the app keeps copies of the images at screen size, so the folder is not needed anymore. Choosing the same folder again updates its slideshow instead of adding a second one. Use the pencil to rename a slideshow and the bin to delete it." : {
+    "Every slideshow you start appears on the start screen and plays again with one tap. For that the app keeps copies of the images at screen size, so the folder or album is not needed anymore. Choosing the same folder or album again updates its slideshow instead of adding a second one. Use the pencil to rename a slideshow and the bin to delete it." : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Jede Diashow, die du startest, erscheint auf der Startseite und läuft mit einem Tipp wieder an. Dafür behält die App Kopien der Bilder in Bildschirmgröße, der Ordner wird also nicht mehr gebraucht. Wählst du denselben Ordner noch einmal, wird seine Diashow aktualisiert, statt eine zweite anzulegen. Mit dem Stift benennst du eine Diashow um, mit dem Papierkorb löschst du sie."
+            "value" : "Jede Diashow, die du startest, erscheint auf der Startseite und läuft mit einem Tipp wieder an. Dafür behält die App Kopien der Bilder in Bildschirmgröße, der Ordner oder das Album wird also nicht mehr gebraucht. Wählst du denselben Ordner oder dasselbe Album noch einmal, wird seine Diashow aktualisiert, statt eine zweite anzulegen. Mit dem Stift benennst du eine Diashow um, mit dem Papierkorb löschst du sie."
           }
         }
       }
@@ -363,12 +448,67 @@
         }
       }
     },
+    "Library" : {
+      "comment" : "Section in the album list: Recents and Favorites",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mediathek"
+          }
+        }
+      }
+    },
+    "Make an album in the Photos app and it shows up here." : {
+      "comment" : "Album list is empty",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lege in der Fotos-App ein Album an, dann erscheint es hier."
+          }
+        }
+      }
+    },
+    "Media types" : {
+      "comment" : "Section in the album list: Selfies, Portrait, Panoramas, Screenshots, …",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Medienarten"
+          }
+        }
+      }
+    },
     "Minutes" : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Minuten"
+          }
+        }
+      }
+    },
+    "My albums" : {
+      "comment" : "Section in the album list: albums the user made in Photos",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Meine Alben"
+          }
+        }
+      }
+    },
+    "No albums with photos" : {
+      "comment" : "Album list is empty",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keine Alben mit Fotos"
           }
         }
       }
@@ -391,6 +531,71 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "In dieser Diashow gibt es keine Bilder im Hochformat."
+          }
+        }
+      }
+    },
+    "Not saved yet. Choose the album again." : {
+      "comment" : "Saved slideshow from a Photos album, no images saved yet",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Noch nicht gespeichert. Wähle das Album noch einmal."
+          }
+        }
+      }
+    },
+    "Nothing from this slideshow is saved yet. Choose the album again to save it." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Von dieser Diashow ist noch nichts gespeichert. Wähle das Album noch einmal, um sie zu speichern."
+          }
+        }
+      }
+    },
+    "Open Settings" : {
+      "comment" : "Opens the app’s page in the Settings app",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Einstellungen öffnen"
+          }
+        }
+      }
+    },
+    "Opening your album…" : {
+      "comment" : "Shown while the picked album is read",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Album wird geöffnet …"
+          }
+        }
+      }
+    },
+    "Photos that are only in iCloud are downloaded while the slideshow plays." : {
+      "comment" : "Shown while the picked album is read",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fotos, die nur in iCloud liegen, werden geladen, während die Diashow läuft."
+          }
+        }
+      }
+    },
+    "Pick a folder in Files or an album in Photos and every image in it plays full screen." : {
+      "comment" : "Start screen intro below the headline",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wähle einen Ordner in Dateien oder ein Album in Fotos, und alle Bilder darin laufen im Vollbild."
           }
         }
       }
@@ -423,17 +628,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Sekunden"
-          }
-        }
-      }
-    },
-    "Sola Slideshow plays every image in a folder – or photos you pick – full screen." : {
-      "comment" : "“Sola Slideshow” is the app name (German: “Sola Diashow”)",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Sola Diashow zeigt alle Bilder eines Ordners – oder Fotos, die du auswählst – im Vollbild."
           }
         }
       }
@@ -570,17 +764,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Fotos, %@"
-          }
-        }
-      }
-    },
-    "Pick a folder in Files and every image in it plays full screen." : {
-      "comment" : "Start screen intro below the headline",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Wähle einen Ordner in Dateien, und alle Bilder darin laufen im Vollbild."
           }
         }
       }
@@ -724,6 +907,17 @@
         }
       }
     },
+    "Shared albums" : {
+      "comment" : "Section in the album list: shared iCloud albums",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Geteilte Alben"
+          }
+        }
+      }
+    },
     "Show a whole folder." : {
       "comment" : "Start screen headline",
       "localizations" : {
@@ -790,6 +984,50 @@
         }
       }
     },
+    "Sola Slideshow can only see the photos you selected, so albums don’t show up. To choose an album, allow access to all photos." : {
+      "comment" : "Shown above the album list when the app has limited access to Photos. “Sola Slideshow” is the app name (German: “Sola Diashow”)",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sola Diashow sieht nur die Fotos, die du ausgewählt hast, deshalb erscheinen keine Alben. Um ein Album zu wählen, erlaube den Zugriff auf alle Fotos."
+          }
+        }
+      }
+    },
+    "Sola Slideshow has no access to your photos. To choose an album, allow access to all photos in the Settings app under Apps › Sola Slideshow › Photos." : {
+      "comment" : "iPhone and iPad. “Sola Slideshow” is the app name (German: “Sola Diashow”)",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sola Diashow hat keinen Zugriff auf deine Fotos. Um ein Album zu wählen, erlaube in der Einstellungen-App unter Apps › Sola Diashow › Fotos den Zugriff auf alle Fotos."
+          }
+        }
+      }
+    },
+    "Sola Slideshow has no access to your photos. To choose an album, turn on Sola Slideshow in System Settings › Privacy & Security › Photos." : {
+      "comment" : "Mac only. “Sola Slideshow” is the app name (German: “Sola Diashow”)",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sola Diashow hat keinen Zugriff auf deine Fotos. Um ein Album zu wählen, schalte Sola Diashow in den Systemeinstellungen unter Datenschutz & Sicherheit › Fotos ein."
+          }
+        }
+      }
+    },
+    "Sola Slideshow plays every image in a folder or a Photos album – or photos you pick – full screen." : {
+      "comment" : "“Sola Slideshow” is the app name (German: “Sola Diashow”)",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sola Diashow zeigt alle Bilder eines Ordners oder eines Albums aus Fotos – oder Fotos, die du auswählst – im Vollbild."
+          }
+        }
+      }
+    },
     "Start a slideshow" : {
       "comment" : "Help heading",
       "localizations" : {
@@ -840,13 +1078,13 @@
         }
       }
     },
-    "Tap **Choose folder** and pick a folder in Files, for example in iCloud Drive or On My iPhone. Every image in it and in its subfolders plays in name order. With **Pick photos or files** you choose single images from Photos or Files instead." : {
+    "Tap **Choose folder** and pick a folder in Files, for example in iCloud Drive or On My iPhone. Every image in it and in its subfolders plays in name order. **Choose album** plays every photo of an album in Photos, in the album’s order. With **Pick photos or files** you choose single images from Photos or Files instead." : {
       "comment" : "Bold parts must match the button titles",
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Tippe auf **Ordner wählen** und wähle einen Ordner in Dateien, zum Beispiel in iCloud Drive oder „Auf meinem iPhone“. Alle Bilder darin und in seinen Unterordnern laufen in Namensreihenfolge. Mit **Fotos oder Dateien wählen** suchst du stattdessen einzelne Bilder aus Fotos oder Dateien aus."
+            "value" : "Tippe auf **Ordner wählen** und wähle einen Ordner in Dateien, zum Beispiel in iCloud Drive oder „Auf meinem iPhone“. Alle Bilder darin und in seinen Unterordnern laufen in Namensreihenfolge. **Album wählen** zeigt alle Fotos eines Albums aus Fotos, in der Reihenfolge des Albums. Mit **Fotos oder Dateien wählen** suchst du stattdessen einzelne Bilder aus Fotos oder Dateien aus."
           }
         }
       }
@@ -857,6 +1095,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Tippe auf den rechten Rand oder wische nach links für das nächste Bild, tippe auf den linken Rand oder wische nach rechts für das vorherige. Ein Tipp in die Mitte blendet die Bedienelemente ein oder aus. Der Bildschirm bleibt an, solange die Diashow läuft."
+          }
+        }
+      }
+    },
+    "That album has no photos." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "In diesem Album sind keine Fotos."
           }
         }
       }

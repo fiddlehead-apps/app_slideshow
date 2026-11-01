@@ -70,6 +70,9 @@ nonisolated struct Show: Codable, Identifiable, Equatable, Sendable {
     var name: String
     /// Folder name it was made from; picking the same folder again replaces it.
     var folder: String?
+    /// Photos album it was made from (`localIdentifier`, only valid on the device that picked
+    /// it); picking the same album again replaces it.
+    var album: String?
     var count: Int
     var saved = 0
     var bytes: Int64 = 0
@@ -100,6 +103,7 @@ nonisolated struct Show: Codable, Identifiable, Equatable, Sendable {
         id = try c.decode(String.self, forKey: .id)
         name = try c.decode(String.self, forKey: .name)
         folder = try c.decodeIfPresent(String.self, forKey: .folder)
+        album = try c.decodeIfPresent(String.self, forKey: .album)
         count = try c.decodeIfPresent(Int.self, forKey: .count) ?? 0
         saved = try c.decodeIfPresent(Int.self, forKey: .saved) ?? 0
         bytes = try c.decodeIfPresent(Int64.self, forKey: .bytes) ?? 0

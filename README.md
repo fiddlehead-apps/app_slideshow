@@ -3,7 +3,7 @@
 Auf Deutsch heißt die App **Sola Diashow**.
 
 Native iOS-Version der Web-App [Folder Slideshow](../webapp_slideshow): spielt alle
-Bilder eines Ordners (oder ausgewählte Fotos) als Vollbild-Diashow ab. SwiftUI,
+Bilder eines Ordners, eines Albums aus Fotos (oder ausgewählte Fotos) als Vollbild-Diashow ab. SwiftUI,
 keine Abhängigkeiten, iPhone, iPad und Mac, ab iOS 18, Deutsch und Englisch.
 
 * Kein Server, kein Konto – die Bilder verlassen das Gerät nie, außer man schaltet den
@@ -14,8 +14,11 @@ keine Abhängigkeiten, iPhone, iPad und Mac, ab iOS 18, Deutsch und Englisch.
 
 **Start:** *Choose folder* öffnet einen Ordner in Dateien (iCloud Drive, Auf meinem
 iPhone, …). Alle Bilder darin und in Unterordnern laufen in Namensreihenfolge
-(„img2“ vor „img10“), versteckte Dateien werden übersprungen. *Pick photos or
-files* fragt per Menü nach Fotos-Mediathek oder Dateien.
+(„img2“ vor „img10“), versteckte Dateien werden übersprungen. *Choose album*
+listet die Alben aus Fotos (Mediathek, Favoriten, eigene Alben samt Ordnern, geteilte
+Alben, Medienarten wie Selfies oder Panoramen); alle Fotos des gewählten Albums laufen in
+der Reihenfolge des Albums, Videos werden übersprungen. *Pick photos or files* fragt per
+Menü nach Fotos-Mediathek oder Dateien.
 
 **Abspielen:** Rechter/linker Rand antippen oder wischen = vor/zurück, Mitte =
 Bedienelemente ein/aus (blenden sich nach 3 s von selbst aus). Bildschirm bleibt
@@ -29,17 +32,31 @@ die zuletzt benutzten gelten als Vorgabe für neue.
 **Your slideshows:** Jede gestartete Diashow landet in der Liste, sortiert nach
 zuletzt gespielt. Wie in der Web-App werden verkleinerte Kopien
 (Bildschirmauflösung, max. 2732 px) gespeichert, danach braucht es den Ordner
-nicht mehr. Derselbe Ordner noch einmal gewählt ersetzt den alten Eintrag.
+nicht mehr. Derselbe Ordner oder dasselbe Album noch einmal gewählt ersetzt den alten Eintrag.
 Stift = umbenennen, Papierkorb = zweimal tippen zum Löschen.
 
 **Hilfe:** Das „?“ oben rechts erklärt kurz die Bedienung.
+
+## Alben aus Fotos
+
+*Choose album* braucht Lesezugriff auf die ganze Fotos-Mediathek (PhotoKit, Text in
+`NSPhotoLibraryUsageDescription`). Beim ersten Mal fragt das System. Hat man auf dem
+iPhone nur „Ausgewählte Fotos“ erlaubt, zeigt Fotos keine Alben; die Liste sagt das dann und
+bietet *Open Settings* an. Ohne Zugriff erklärt die Startseite, wo man ihn einschaltet (auf
+dem Mac: *Systemeinstellungen › Datenschutz & Sicherheit › Fotos*; bei lokal signierten
+Builds kann macOS nach jedem Neubau erneut fragen).
+
+Wie bei Ordnern werden verkleinerte Kopien gespeichert, Fotos, die nur in iCloud liegen,
+lädt PhotoKit dabei nach. Die Diashow merkt sich das Album über seinen
+`localIdentifier` (Feld `album`, auch im iCloud-Record). Der gilt nur auf dem Gerät, auf dem
+das Album gewählt wurde: Auf einem anderen Gerät legt dasselbe Album eine neue Diashow an.
 
 ## iCloud-Sync
 
 Standardmäßig aus. Eingeschaltet wird er in der Hilfe („?“) unter *iCloud*. Dann gehen über
 die private CloudKit-Datenbank des Nutzers (CKSyncEngine, eine Record-Zone „Slideshows“):
 
-* jede Diashow (Name, Ordner, Dateinamen, Einstellungen, versteckt, zuletzt gespielt),
+* jede Diashow (Name, Ordner bzw. Album, Dateinamen, Einstellungen, versteckt, zuletzt gespielt),
 * jede gespeicherte Kopie als eigener Record mit Asset,
 * die Vorgaben für neue Diashows.
 
@@ -183,6 +200,7 @@ python3 tools/make_icon.py
 | `Library.swift` | Gespeicherte Diashows (`Application Support/Slideshows`), Kopieren im Hintergrund, Records für iCloud |
 | `CloudSync.swift` / `CloudSyncToggle.swift` | iCloud-Sync (CKSyncEngine), Schalter mit Status; gleiche Dateien wie in Sola Birthdays |
 | `Images.swift` | Ordner durchsuchen, iCloud-Dateien laden, verkleinern (ImageIO) |
+| `Albums.swift` | Alben aus Fotos (PhotoKit): Zugriff, Album-Liste, Bilder laden |
 | `HelpView.swift` | Hilfe, Face-ID-Entsperren, versteckte Diashows |
 | `Models.swift` / `Theme.swift` | Datenmodell, Farben wie in der Web-App |
 | `Localizable.xcstrings` / `InfoPlist.xcstrings` | Texte auf Englisch und Deutsch |

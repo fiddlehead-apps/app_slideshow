@@ -205,6 +205,7 @@
 				INFOPLIST_KEY_CFBundleDisplayName = "Sola Slideshow";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.photography";
 				INFOPLIST_KEY_NSFaceIDUsageDescription = "Face ID unlocks your hidden slideshows.";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "So you can play a whole album from Photos as a slideshow.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
@@ -243,6 +244,7 @@
 				INFOPLIST_KEY_CFBundleDisplayName = "Sola Slideshow";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.photography";
 				INFOPLIST_KEY_NSFaceIDUsageDescription = "Face ID unlocks your hidden slideshows.";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "So you can play a whole album from Photos as a slideshow.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
