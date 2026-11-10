@@ -27,7 +27,8 @@ an. Auf dem iPad mit Tastatur: ← → Leertaste Esc.
 **Einstellungen** (Regler-Knopf unten links): Zeit pro Bild (3 s – 1 min), Shuffle,
 Bildschirm füllen, Überblenden und – neu gegenüber der Web-App – ob der
 **Fortschrittsbalken** unten mitläuft. Jede Diashow merkt sich ihre Einstellungen;
-die zuletzt benutzten gelten als Vorgabe für neue.
+die zuletzt benutzten gelten als Vorgabe für neue (außer dem Bildformat: neue Diashows
+zeigen immer alle Bilder).
 
 **Your slideshows:** Jede gestartete Diashow landet in der Liste, sortiert nach
 zuletzt gespielt. Ordner und Alben laufen direkt aus Dateien bzw. Fotos (siehe *Kopien*).
@@ -63,6 +64,8 @@ Kante höchstens 2732 px, auf jedem Gerät gleich). Ob sie das tut, hängt von d
 
 * **Einschalten:** in den Einstellungen der laufenden Diashow *Keep a copy on this device*.
   Ab 1000 Bildern fragt die App vorher und nennt den ungefähren Platzbedarf.
+* **Aktualisieren:** Eine Kopie ist ein Schnappschuss. *Update copy* (Einstellungen der
+  Diashow oder langes Drücken auf den Eintrag) legt sie aus dem aktuellen Inhalt neu an.
 * **Anzeige und Löschen:** Unter jedem Eintrag mit Kopie steht *Copy on this device: 86 MB*
   mit *Delete copy*. Bei Ordnern und Alben bleibt die Diashow danach in der Liste; gibt es
   sie nur als Kopie, sagt die Rückfrage, dass die ganze Diashow gelöscht wird.
@@ -175,11 +178,11 @@ die gespeicherten Diashows bleiben erhalten. iPhone per Kabel anschließen,
 entsperren, dann:
 
 ```bash
-xcodebuild -project SolaSlideshow.xcodeproj -scheme SolaSlideshow -configuration Release -destination 'id=00008150-000655C92E20401C' -derivedDataPath /tmp/slideshow-device -allowProvisioningUpdates build
+xcodebuild -project SolaSlideshow.xcodeproj -scheme SolaSlideshow -configuration Release -destination 'id=<DEVICE-ID>' -derivedDataPath /tmp/slideshow-device -allowProvisioningUpdates build
 ```
 
 ```bash
-xcrun devicectl device install app --device 00008150-000655C92E20401C "/tmp/slideshow-device/Build/Products/Release-iphoneos/Sola Slideshow.app"
+xcrun devicectl device install app --device <DEVICE-ID> "/tmp/slideshow-device/Build/Products/Release-iphoneos/Sola Slideshow.app"
 ```
 
 Beim allerersten Mal auf dem iPhone dem Profil vertrauen: *Einstellungen ›
@@ -216,10 +219,15 @@ xcodebuild -project SolaSlideshow.xcodeproj -scheme SolaSlideshow -configuration
 ditto "/tmp/slideshow-mac/Build/Products/Release-maccatalyst/Sola Slideshow.app" ~/Applications/"Sola Slideshow.app"
 ```
 
-Auf dem Mac liegen die Daten unter
-`~/Library/Application Support/eu.fiddlehead.sola.slideshow/Slideshows` (Diashows aus
-Builds mit der alten Bundle-ID `org.christophschneider.slideshow` zieht die App beim
-ersten Start dorthin um).
+Die Mac-App läuft in der App Sandbox (Pflicht für den Mac App Store). Sie darf nur lesen,
+was man in ihr auswählt, sich Ordner per Bookmark merken und die Fotos-Mediathek lesen; ins
+Netz darf nur der iCloud-Build. Die Rechte stehen in `Config/SolaSlideshow-Mac.entitlements`
+bzw. `…-Mac-iCloud.entitlements`.
+
+Die Daten liegen damit im Container:
+`~/Library/Containers/eu.fiddlehead.sola.slideshow/Data/Library/Application Support/eu.fiddlehead.sola.slideshow/Slideshows`.
+Daten aus Builds vor der Sandbox (`~/Library/Application Support/eu.fiddlehead.sola.slideshow`)
+soll macOS beim ersten Start dorthin umziehen (`SolaSlideshow/container-migration.plist`).
 Statt Face ID fragt das Versteck nach Touch ID bzw. dem Mac-Passwort. Pfeiltasten,
 Leertaste und Esc steuern die Diashow, Vollbild über den grünen Fensterknopf.
 
@@ -228,6 +236,24 @@ App-Icon neu erzeugen (gleiches Motiv wie die Web-App, braucht Pillow):
 ```bash
 python3 tools/make_icon.py
 ```
+
+## Tests und Build-Check
+
+```bash
+./build.sh --test
+```
+
+lässt die Unit-Tests im Simulator laufen (`SolaSlideshowTests/`, Swift Testing): das
+Datenmodell samt alten gespeicherten Listen, welche Seite beim iCloud-Abgleich gewinnt
+(`Show.merged`), die Reihenfolge beim Kopieren (`CopyQueue`) und das Wiedererkennen von
+Ordnern und Alben (`Library.match`).
+
+```bash
+./build.sh --mac-check
+```
+
+kompiliert die Mac-App ohne Signatur. `.github/workflows/build.yml` macht bei jedem Push,
+der die App betrifft, beides plus den Simulator-Build auf einem Mac-Runner von GitHub.
 
 ## Aufbau
 
@@ -242,6 +268,8 @@ python3 tools/make_icon.py
 | `Images.swift` | Ordner durchsuchen und per Bookmark merken, iCloud-Dateien laden, verkleinern (ImageIO) |
 | `Albums.swift` | Alben aus Fotos (PhotoKit): Zugriff, Album-Liste, Bilder laden |
 | `HelpView.swift` | Hilfe, Face-ID-Entsperren, versteckte Diashows |
-| `Models.swift` / `Theme.swift` | Datenmodell, Farben wie in der Web-App |
+| `Models.swift` / `Theme.swift` | Datenmodell samt Abgleich mit dem iCloud-Record, Farben wie in der Web-App |
+| `CopyQueue.swift` | Reihenfolge, in der Diashows ihre Kopien bekommen |
+| `SolaSlideshowTests/` | Unit-Tests |
 | `Localizable.xcstrings` / `InfoPlist.xcstrings` | Texte auf Englisch und Deutsch |
-| `Config/` | `Config.xcconfig` (Bundle-ID, Team, iCloud-Schalter), Info.plist, iCloud-Entitlements |
+| `Config/` | `Config.xcconfig` (Bundle-ID, Team, iCloud-Schalter), Info.plist, Entitlements (iCloud, Mac-Sandbox) |

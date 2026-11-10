@@ -435,6 +435,24 @@ private struct SettingsSheet: View {
             }
             .tint(.switchOn)
             .frame(minHeight: 52)
+            if show.copy, show.done {
+                // A copy is a snapshot: this brings it in line with the folder or album again.
+                HStack(spacing: 12) {
+                    Text("Made on \(show.content.formatted(date: .abbreviated, time: .omitted))",
+                         comment: "When a slideshow’s copy was made; the placeholder is a date like “3 Nov 2026”")
+                        .font(.system(size: 13))
+                        .opacity(0.6)
+                    Spacer(minLength: 0)
+                    Button { player.updateCopy() } label: {
+                        Text("Update copy")
+                            .font(.system(size: 15, weight: .semibold))
+                            .padding(.horizontal, 14)
+                            .padding(.vertical, 9)
+                            .background(Color.white.opacity(0.1), in: .capsule)
+                    }
+                }
+                .padding(.bottom, 12)
+            }
             if let problem = player.copyProblem {
                 Text(problem)
                     .font(.system(size: 13))

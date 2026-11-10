@@ -95,7 +95,9 @@ nonisolated enum Bookmark {
 
     static func make(_ url: URL) -> Data? {
         #if targetEnvironment(macCatalyst)
-        if let d = try? url.bookmarkData(options: .withSecurityScope, includingResourceValuesForKeys: nil, relativeTo: nil) {
+        // The sandbox only lets the app read what the user picked, so the bookmark asks for no more.
+        if let d = try? url.bookmarkData(options: [.withSecurityScope, .securityScopeAllowOnlyReadAccess],
+                                         includingResourceValuesForKeys: nil, relativeTo: nil) {
             return d
         }
         #endif

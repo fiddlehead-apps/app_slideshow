@@ -51,6 +51,7 @@ struct ShowRow: View {
     @State private var confirmDelete = false
     @State private var confirmTask: Task<Void, Never>?
     @State private var askDeleteCopy = false
+    @State private var askDelete = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -83,6 +84,14 @@ struct ShowRow: View {
         } message: {
             Text(library.deletingCopyMeans(show))
         }
+        .confirmationDialog(Text("Delete “\(show.name)”?"), isPresented: $askDelete, titleVisibility: .visible) {
+            Button("Delete slideshow", role: .destructive) {
+                Task { await library.delete(show.id) }
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text(library.deletingMeans(show))
+        }
         .alert("Rename slideshow", isPresented: $renaming) {
             TextField("Slideshow name", text: $newName)
                 .submitLabel(.done)
@@ -94,7 +103,17 @@ struct ShowRow: View {
             if inHidden {
                 Button { library.setHidden(show.id, false) } label: { Label("Move to Your slideshows", systemImage: "eye") }
             }
-            Button(role: .destructive) { Task { await library.delete(show.id) } } label: { Label("Delete", systemImage: "trash") }
+            if show.copy, show.done, show.hasReference {
+                Button {
+                    Task {
+                        if let error = await library.updateCopy(show.id) { library.notice = library.explain(error, for: show) }
+                    }
+                } label: {
+                    Label("Update copy", systemImage: "arrow.clockwise")
+                }
+            }
+            // Asks first, like the bin with its second tap.
+            Button(role: .destructive) { askDelete = true } label: { Label("Delete", systemImage: "trash") }
         }
     }
 

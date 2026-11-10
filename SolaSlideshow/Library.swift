@@ -97,16 +97,10 @@ final class Library {
     private init() {
         var support = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
         #if targetEnvironment(macCatalyst)
-        // Not sandboxed on the Mac, so Application Support is shared with every other app.
-        let base = support
+        // In the app's sandbox container. The folder with the bundle ID is where builds from
+        // before the sandbox kept their data; macOS moves it into the container on the first
+        // start (container-migration.plist), so the path below it stays the same.
         support.appendPathComponent(Bundle.main.bundleIdentifier ?? "eu.fiddlehead.sola.slideshow", isDirectory: true)
-        // Builds before the move to eu.fiddlehead kept their slideshows under the old bundle ID.
-        let legacy = base.appendingPathComponent("org.christophschneider.slideshow/Slideshows", isDirectory: true)
-        let moved = support.appendingPathComponent("Slideshows", isDirectory: true)
-        if FileManager.default.fileExists(atPath: legacy.path), !FileManager.default.fileExists(atPath: moved.path) {
-            try? FileManager.default.createDirectory(at: support, withIntermediateDirectories: true)
-            try? FileManager.default.moveItem(at: legacy, to: moved)
-        }
         #endif
         root = support.appendingPathComponent("Slideshows", isDirectory: true)
         try? FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
@@ -355,7 +349,10 @@ final class Library {
             show.lastPlayed = now
             show.modified = now
         } else {
-            show = Show(id: Show.newID(), name: name, folder: nil, count: items.count, settings: defaults)
+            // Every new slideshow starts with all its images, whatever was played last.
+            var settings = defaults
+            settings.orientation = .all
+            show = Show(id: Show.newID(), name: name, folder: nil, count: items.count, settings: settings)
             show.copy = false
             shows.append(show)
         }
@@ -462,6 +459,46 @@ final class Library {
         modify(id) { $0.copy = false }
         if case .failure(let error) = result { return error }
         return .gone
+    }
+
+    /// Makes the copy of a folder's or album's slideshow again from what is in there now.
+    /// Returns what went wrong if the folder or album couldn't be opened.
+    @discardableResult
+    func updateCopy(_ id: String) async -> SourceError? {
+        guard let s = show(id), s.copy, s.hasReference else { return nil }
+        switch await source(of: id, ask: true) {
+        case .failure(let error):
+            return error
+        case .success(let found):
+            guard !found.isEmpty else { return .gone }
+            recopy(id, found)
+            return nil
+        }
+    }
+
+    /// Makes the copy again from images that were just read from the folder or album.
+    func recopy(_ id: String, _ items: [SourceItem]) {
+        guard let s = show(id), s.copy, s.hasReference, !items.isEmpty else { return }
+        startCopy(id, items)
+    }
+
+    /// What deleting a slideshow does, for the question that comes before it.
+    func deletingMeans(_ s: Show) -> String {
+        var parts: [String] = []
+        if s.album != nil {
+            parts.append(String(localized: "Only the slideshow goes. The album in Photos stays as it is."))
+        } else if s.bookmark != nil {
+            parts.append(String(localized: "Only the slideshow goes. The folder in Files stays as it is."))
+        } else {
+            parts.append(String(localized: "The slideshow and its saved images are deleted from this device. The originals in Photos or Files stay as they are."))
+        }
+        if s.hasReference, s.copy, s.bytes > 0 {
+            parts.append(String(localized: "Its copy on this device is deleted too."))
+        }
+        if cloud.knows(s.id) {
+            parts.append(String(localized: "It is also removed from iCloud and from your other devices."))
+        }
+        return parts.joined(separator: " ")
     }
 
     /// What deleting a slideshow's copy does, for the question that comes before it.

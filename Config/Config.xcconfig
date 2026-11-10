@@ -24,6 +24,13 @@ SOLA_APP_ENTITLEMENTS_NO =
 SOLA_APP_ENTITLEMENTS_YES = Config/SolaSlideshow-iCloud.entitlements
 SOLA_APP_ENTITLEMENTS = $(SOLA_APP_ENTITLEMENTS_$(SOLA_ICLOUD))
 
+// The Mac app runs in the App Sandbox (required for the Mac App Store): it may read the
+// folders and files the user picks, keep bookmarks to them, and read the Photos library.
+// Only the iCloud build may open network connections.
+SOLA_MAC_ENTITLEMENTS_NO = Config/SolaSlideshow-Mac.entitlements
+SOLA_MAC_ENTITLEMENTS_YES = Config/SolaSlideshow-Mac-iCloud.entitlements
+SOLA_APP_ENTITLEMENTS[sdk=macosx*] = $(SOLA_MAC_ENTITLEMENTS_$(SOLA_ICLOUD))
+
 // The Mac app is signed to run locally unless it needs the team for iCloud.
 SOLA_MAC_IDENTITY_NO = -
 SOLA_MAC_IDENTITY_YES = Apple Development

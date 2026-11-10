@@ -47,7 +47,8 @@ struct RootView: View {
                     .zIndex(1)
             }
 
-            // Keeps hidden slideshows out of the app switcher.
+            // Keeps a hidden slideshow that is playing out of the app switcher. The list of
+            // hidden slideshows is in the help sheet, which covers itself (see `HelpView`).
             if scenePhase != .active && showsHiddenContent {
                 Color.black.ignoresSafeArea().zIndex(2)
             }
@@ -56,7 +57,7 @@ struct RootView: View {
         .fontDesign(.rounded)
         .tint(Color.accent)
         .sheet(isPresented: $showHelp) {
-            HelpView(library: library, startHidden: helpStartsHidden) { show in
+            HelpView(library: library, startHidden: helpStartsHidden, covered: scenePhase != .active) { show in
                 showHelp = false
                 openSaved(show)
             }

@@ -538,6 +538,17 @@
         }
       }
     },
+    "Its copy on this device is deleted too." : {
+      "comment" : "Explains what deleting a slideshow does",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ihre Kopie auf diesem Gerät wird ebenfalls gelöscht."
+          }
+        }
+      }
+    },
     "Keep a copy on this device" : {
       "comment" : "Switch in the settings of a slideshow that plays from a folder or an album",
       "localizations" : {
@@ -578,6 +589,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Mediathek"
+          }
+        }
+      }
+    },
+    "Made on %@" : {
+      "comment" : "When a slideshow’s copy was made; %@ is a date like “3 Nov 2026”",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Angelegt am %@"
           }
         }
       }
@@ -730,6 +752,28 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Nur %lld von %lld Bildern wurden gespeichert."
+          }
+        }
+      }
+    },
+    "Only the slideshow goes. The album in Photos stays as it is." : {
+      "comment" : "Explains what deleting a slideshow does",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nur die Diashow wird gelöscht. Das Album in Fotos bleibt, wie es ist."
+          }
+        }
+      }
+    },
+    "Only the slideshow goes. The folder in Files stays as it is." : {
+      "comment" : "Explains what deleting a slideshow does",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nur die Diashow wird gelöscht. Der Ordner in Dateien bleibt, wie er ist."
           }
         }
       }
@@ -1364,6 +1408,17 @@
         }
       }
     },
+    "The slideshow and its saved images are deleted from this device. The originals in Photos or Files stay as they are." : {
+      "comment" : "Explains what deleting a slideshow does",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die Diashow und ihre gespeicherten Bilder werden von diesem Gerät gelöscht. Die Originale in Fotos oder Dateien bleiben, wie sie sind."
+          }
+        }
+      }
+    },
     "The slideshow stays in the list and plays from its album in Photos." : {
       "comment" : "Explains what deleting the copy does",
       "localizations" : {
@@ -1439,13 +1494,13 @@
         }
       }
     },
-    "Turn on **Keep a copy on this device** in a slideshow’s settings and the app saves its images at screen size. The slideshow then plays without the folder or album, also offline, and shows the images as they were when the copy was made. Photos and files you pick one by one are always saved this way, because they can’t be opened again later. The list shows how much space each copy takes; **Delete copy** frees it." : {
+    "Turn on **Keep a copy on this device** in a slideshow’s settings and the app saves its images at screen size. The slideshow then plays without the folder or album, also offline, and shows the images as they were when the copy was made. Photos and files you pick one by one are always saved this way, because they can’t be opened again later. The list shows how much space each copy takes; **Delete copy** frees it, and **Update copy** in the settings makes it again from what is in the folder or album now." : {
       "comment" : "Help text. Bold parts must match the switch and button titles",
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Schalte in den Einstellungen einer Diashow **Kopie auf diesem Gerät behalten** ein, dann speichert die App ihre Bilder in Bildschirmgröße. Die Diashow läuft danach ohne den Ordner oder das Album, auch offline, und zeigt die Bilder so, wie sie beim Kopieren waren. Fotos und Dateien, die du einzeln auswählst, werden immer so gespeichert, weil sie sich später nicht noch einmal öffnen lassen. Die Liste zeigt, wie viel Platz jede Kopie belegt; **Kopie löschen** gibt ihn frei."
+            "value" : "Schalte in den Einstellungen einer Diashow **Kopie auf diesem Gerät behalten** ein, dann speichert die App ihre Bilder in Bildschirmgröße. Die Diashow läuft danach ohne den Ordner oder das Album, auch offline, und zeigt die Bilder so, wie sie beim Kopieren waren. Fotos und Dateien, die du einzeln auswählst, werden immer so gespeichert, weil sie sich später nicht noch einmal öffnen lassen. Die Liste zeigt, wie viel Platz jede Kopie belegt; **Kopie löschen** gibt ihn frei, und **Kopie aktualisieren** in den Einstellungen legt sie aus dem aktuellen Inhalt des Ordners oder Albums neu an."
           }
         }
       }
@@ -1456,6 +1511,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Einheit"
+          }
+        }
+      }
+    },
+    "Update copy" : {
+      "comment" : "Button and menu item: makes a slideshow’s copy again from what is in its folder or album now",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kopie aktualisieren"
           }
         }
       }

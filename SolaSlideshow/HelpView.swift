@@ -13,13 +13,16 @@ enum Unlock {
 
 struct HelpView: View {
     let library: Library
+    /// The app isn't in front (app switcher, Control Centre, on its way to the background).
+    var covered: Bool
     var onOpen: (Show) -> Void
 
     @Environment(\.dismiss) private var dismiss
     @State private var unlocked: Bool
 
-    init(library: Library, startHidden: Bool = false, onOpen: @escaping (Show) -> Void) {
+    init(library: Library, startHidden: Bool = false, covered: Bool = false, onOpen: @escaping (Show) -> Void) {
         self.library = library
+        self.covered = covered
         self.onOpen = onOpen
         _unlocked = State(initialValue: startHidden)
     }
@@ -39,7 +42,7 @@ struct HelpView: View {
                     section("Your slideshows",
                             "Every slideshow you start appears on the start screen and plays again with one tap. A folder or an album plays straight from Files or Photos, so it always shows what is in there now. Choosing the same folder or album again opens its slideshow instead of adding a second one. Use the pencil to rename a slideshow and the bin to delete it.")
                     section("Copies",
-                            "Turn on **Keep a copy on this device** in a slideshow’s settings and the app saves its images at screen size. The slideshow then plays without the folder or album, also offline, and shows the images as they were when the copy was made. Photos and files you pick one by one are always saved this way, because they can’t be opened again later. The list shows how much space each copy takes; **Delete copy** frees it.")
+                            "Turn on **Keep a copy on this device** in a slideshow’s settings and the app saves its images at screen size. The slideshow then plays without the folder or album, also offline, and shows the images as they were when the copy was made. Photos and files you pick one by one are always saved this way, because they can’t be opened again later. The list shows how much space each copy takes; **Delete copy** frees it, and **Update copy** in the settings makes it again from what is in the folder or album now.")
 
                     // Tapping this paragraph five times asks for Face ID and opens the hidden slideshows.
                     section("Private",
@@ -78,6 +81,13 @@ struct HelpView: View {
             }
             .navigationDestination(isPresented: $unlocked) {
                 HiddenView(library: library, onOpen: onOpen)
+            }
+        }
+        // Keeps the hidden slideshows out of the app switcher. It has to sit on the sheet
+        // itself: nothing in the window below can cover a sheet.
+        .overlay {
+            if covered && unlocked {
+                Color.black.ignoresSafeArea()
             }
         }
     }

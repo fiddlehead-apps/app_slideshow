@@ -371,21 +371,38 @@ final class Player {
         Task {
             if !on, case .stored = source {
                 // The copies it is playing from are about to go: carry on from the folder or album.
-                switch await library.source(of: id, ask: true) {
-                case .success(let items) where !items.isEmpty:
-                    guard showID == id else { return }
-                    replaceSource(.items(items))
-                case .success:
-                    copyProblem = library.explain(.gone, for: s)
-                    return
-                case .failure(let error):
-                    copyProblem = library.explain(error, for: s)
-                    return
-                }
+                guard let items = await freshItems(of: s), showID == id else { return }
+                replaceSource(.items(items))
             }
             if let error = await library.setCopy(id, on), showID == id {
                 copyProblem = library.explain(error, for: s)
             }
+        }
+    }
+
+    /// Makes the copy of the playing slideshow again, from what its folder or album holds now.
+    func updateCopy() {
+        guard let id = showID, let s = library.show(id) else { return }
+        copyProblem = nil
+        Task {
+            guard let items = await freshItems(of: s) else { return }
+            // The old copies go first, so it can't keep playing from them.
+            if showID == id, case .stored = source { replaceSource(.items(items)) }
+            library.recopy(id, items)
+        }
+    }
+
+    /// What is in a slideshow's folder or album now. Says why if there is nothing to play.
+    private func freshItems(of s: Show) async -> [SourceItem]? {
+        switch await library.source(of: s.id, ask: true) {
+        case .success(let items) where !items.isEmpty:
+            return items
+        case .success:
+            copyProblem = library.explain(.gone, for: s)
+            return nil
+        case .failure(let error):
+            copyProblem = library.explain(error, for: s)
+            return nil
         }
     }
 
@@ -412,7 +429,10 @@ final class Player {
             buildOrder(keeping: order[pos])
             preload()
         }
-        library.defaults = settings
+        // The image format belongs to this slideshow alone: new ones start with all images.
+        var forNew = settings
+        forNew.orientation = .all
+        library.defaults = forNew
         if let showID { library.setSettings(showID, settings) }
         if settings.interval != old.interval { updateClock() }
     }
