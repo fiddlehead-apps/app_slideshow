@@ -63,7 +63,8 @@ SO, WIE DU ES MAGST
 
 DEINE DIASHOWS
 • Jede Diashow merkt sich ihre Einstellungen und bleibt in deiner Liste.
-• Die App speichert verkleinerte Kopien, danach braucht sie den Ordner nicht mehr.
+• Ordner und Alben laufen direkt aus Dateien und Fotos und zeigen immer den aktuellen Stand.
+• Auf Wunsch behält die App eine verkleinerte Kopie, dann läuft die Diashow auch ohne Ordner oder Album und offline.
 • Diashows lassen sich umbenennen, löschen oder verstecken.
 
 DEINE BILDER BLEIBEN BEI DIR
@@ -109,7 +110,8 @@ THE WAY YOU LIKE IT
 
 YOUR SLIDESHOWS
 • Each slideshow remembers its settings and stays in your list.
-• The app keeps resized copies, so it no longer needs the folder afterwards.
+• Folders and albums play straight from Files and Photos and always show what is in them now.
+• If you like, the app keeps a resized copy, so the slideshow also plays without the folder or album, and offline.
 • Rename, delete or hide slideshows.
 
 YOUR PICTURES STAY WITH YOU

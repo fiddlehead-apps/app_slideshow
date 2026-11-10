@@ -47,7 +47,9 @@ final class Player {
     /// Called when nothing in the slideshow could be opened.
     var onFailure: ((String) -> Void)?
 
-    private let library: Library
+    let library: Library
+    /// Why the copy of the playing slideshow couldn't be turned on or off.
+    private(set) var copyProblem: String?
     private var source: Source?
     private var dir = 1
     private var token = 0
@@ -81,6 +83,7 @@ final class Player {
         self.label = label
         self.showID = showID
         self.settings = settings
+        copyProblem = nil
         current = nil
         sheetOpen = false
         playing = true
@@ -125,6 +128,9 @@ final class Player {
         guard let s = library.saving, s.id == showID else { return nil }
         return String(localized: "Saving for quick access: \(s.saved) of \(s.total)")
     }
+
+    /// The playing slideshow as it is in the list.
+    var show: Show? { showID.flatMap(library.show) }
 
     var displayLabel: String {
         if let id = showID, let s = library.show(id) { return s.name }
@@ -272,7 +278,7 @@ final class Player {
     private func image(for index: Int) async -> UIImage? {
         if let t = loads[index] { return await t.value }
         guard let source else { return nil }
-        let maxPixel = Images.maxEdge
+        let maxPixel = Images.displayEdge
         let task: Task<UIImage?, Never>
         switch source {
         case .items(let items):
@@ -357,6 +363,43 @@ final class Player {
     }
 
     // MARK: Settings
+
+    /// Turns the saved copy of the playing slideshow on or off.
+    func setCopy(_ on: Bool) {
+        guard let id = showID, let s = library.show(id) else { return }
+        copyProblem = nil
+        Task {
+            if !on, case .stored = source {
+                // The copies it is playing from are about to go: carry on from the folder or album.
+                switch await library.source(of: id, ask: true) {
+                case .success(let items) where !items.isEmpty:
+                    guard showID == id else { return }
+                    replaceSource(.items(items))
+                case .success:
+                    copyProblem = library.explain(.gone, for: s)
+                    return
+                case .failure(let error):
+                    copyProblem = library.explain(error, for: s)
+                    return
+                }
+            }
+            if let error = await library.setCopy(id, on), showID == id {
+                copyProblem = library.explain(error, for: s)
+            }
+        }
+    }
+
+    /// Carries on with the same slideshow from another source, starting at its first image.
+    private func replaceSource(_ new: Source) {
+        loads.values.forEach { $0.cancel() }
+        loads = [:]
+        bad = []
+        skipped = []
+        shapes = nil
+        noMatches = false
+        source = new
+        applyOrder(keeping: nil)
+    }
 
     func change(_ edit: (inout ShowSettings) -> Void) {
         let old = settings

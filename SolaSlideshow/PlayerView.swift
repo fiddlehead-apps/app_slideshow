@@ -245,6 +245,11 @@ private struct SettingsSheet: View {
     @State private var customValue: Int?
     @State private var customUnit = 1
     @FocusState private var customFocused: Bool
+    @State private var askBigCopy = false
+    @State private var askDeleteCopy = false
+
+    /// From this many images on, making a copy asks first.
+    private static let bigCopy = 1000
 
     var body: some View {
         // Read here so the sheet redraws when a setting changes (values read only
@@ -325,6 +330,8 @@ private struct SettingsSheet: View {
                 toggle("Fill screen", "Crops edges instead of showing the whole image", \.fill, current)
                 toggle("Fade between images", nil, \.fade, current)
                 toggle("Progress bar", "Thin line at the bottom that runs until the next image", \.progress, current)
+                // Only where there is a choice: single photos and files always have their copy.
+                if let show = player.show, show.hasReference { copyToggle(show) }
 
                 VStack(spacing: 10) {
                     sheetButton("Choose another folder") { onPick(.folder) }
@@ -340,10 +347,22 @@ private struct SettingsSheet: View {
         }
         .scrollDismissesKeyboard(.interactively)
         .foregroundStyle(.white)
+        .confirmationDialog("Make a copy of all images?", isPresented: $askBigCopy, titleVisibility: .visible) {
+            Button("Make a copy") { player.setCopy(true) }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            if let show = player.show { Text(bigCopyNote(show)) }
+        }
+        .confirmationDialog("Delete the copy?", isPresented: $askDeleteCopy, titleVisibility: .visible) {
+            Button("Delete copy", role: .destructive) { player.setCopy(false) }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            if let show = player.show { Text(player.library.deletingCopyMeans(show)) }
+        }
         .onAppear {
             if !ShowSettings.intervals.contains(current.interval) { startCustom(current.interval, focus: false) }
         }
-        .presentationDetents([.height(800), .large])
+        .presentationDetents([.height(860), .large])
         .presentationDragIndicator(.visible)
         .presentationBackground(.ultraThinMaterial)
         .preferredColorScheme(.dark)
@@ -392,6 +411,58 @@ private struct SettingsSheet: View {
             .tint(.switchOn)
             .frame(minHeight: 52)
         }
+    }
+
+    /// "Keep a copy on this device", for a slideshow that plays from a folder or an album.
+    private func copyToggle(_ show: Show) -> some View {
+        let library = player.library
+        return VStack(alignment: .leading, spacing: 0) {
+            Divider().overlay(Color.white.opacity(0.1))
+            Toggle(isOn: Binding(get: { show.copy }, set: { on in
+                if on, show.count >= Self.bigCopy {
+                    askBigCopy = true
+                } else if !on, library.cloud.knows(show.id) {
+                    // Turning it off here takes it away from the other devices too.
+                    askDeleteCopy = true
+                } else {
+                    player.setCopy(on)
+                }
+            })) {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Keep a copy on this device").font(.system(size: 17))
+                    Text(copyDetail(show)).font(.system(size: 13)).opacity(0.6)
+                }
+            }
+            .tint(.switchOn)
+            .frame(minHeight: 52)
+            if let problem = player.copyProblem {
+                Text(problem)
+                    .font(.system(size: 13))
+                    .foregroundStyle(Color.danger)
+                    .padding(.bottom, 10)
+            }
+        }
+    }
+
+    private func copyDetail(_ show: Show) -> String {
+        let library = player.library
+        if let s = library.saving, s.id == show.id { return String(localized: "Saving \(s.saved) of \(s.total)") }
+        if library.queued.contains(show.id) { return String(localized: "Waiting until another slideshow is saved") }
+        if show.copy, show.done {
+            return String(localized: "Plays without the folder or album, also offline. Uses \(Format.bytes(show.bytes)).",
+                          comment: "The placeholder is a size like “86 MB”")
+        }
+        return library.cloud.isOn
+            ? String(localized: "Plays without the folder or album, also offline, and syncs with iCloud")
+            : String(localized: "Plays without the folder or album, also offline")
+    }
+
+    private func bigCopyNote(_ show: Show) -> String {
+        // Copies are JPEGs of at most 2732 pixels; about 1 MB each is a fair guess.
+        let size = Format.bytes(Int64(show.count) * 1_000_000)
+        return player.library.cloud.isOn
+            ? String(localized: "\(show.count) images take roughly \(size) on this device and in your iCloud.", comment: "The second placeholder is a size like “2.4 GB”")
+            : String(localized: "\(show.count) images take roughly \(size) on this device.", comment: "The second placeholder is a size like “2.4 GB”")
     }
 
     private func sheetButton(_ title: LocalizedStringKey, action: @escaping () -> Void) -> some View {

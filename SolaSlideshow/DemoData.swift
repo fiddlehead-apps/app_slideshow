@@ -9,7 +9,7 @@ enum DemoData {
         guard UserDefaults.standard.bool(forKey: "demoData"), library.list(hidden: false).isEmpty,
               let docs = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first else { return }
         let de = Locale.current.language.languageCode?.identifier == "de"
-        // Saved one after another (a new save cancels the running one); the last one ends up on top.
+        // Saved one after another, so the last one ends up on top.
         let sets = [("Abend", de ? "Abendlicht" : "Evening light"),
                     ("Sommer", de ? "Sommer am See" : "Summer by the lake"),
                     ("Landschaften", de ? "Landschaften" : "Landscapes")]
@@ -18,8 +18,8 @@ enum DemoData {
                 let dir = docs.appendingPathComponent("Demo/\(folder)", isDirectory: true)
                 let files = (try? FileManager.default.contentsOfDirectory(at: dir, includingPropertiesForKeys: nil)) ?? []
                 guard !files.isEmpty else { continue }
-                _ = library.save(Images.items(fromFiles: files), name: name, folder: nil)
-                while library.saving != nil { try? await Task.sleep(for: .milliseconds(200)) }
+                library.add(Images.items(fromFiles: files), name: name, origin: .picked)
+                while library.isBusy { try? await Task.sleep(for: .milliseconds(200)) }
             }
         }
     }

@@ -63,16 +63,25 @@ nonisolated struct ShowSettings: Codable, Equatable, Sendable {
     }
 }
 
-/// A saved slideshow. The images themselves live as downsized copies in
-/// `Library.directory(for:)`, numbered in play order.
+/// A slideshow in the list. A folder or an album plays straight from Files or Photos
+/// (`bookmark`, `album`); with `copy` the images also live as downsized copies in
+/// `Library.directory(for:)`, numbered in play order. Single photos and files, and slideshows
+/// that came from iCloud, have nothing to open again, so they only exist as copies.
 nonisolated struct Show: Codable, Identifiable, Equatable, Sendable {
     var id: String
     var name: String
-    /// Folder name it was made from; picking the same folder again replaces it.
+    /// Name of the folder it was made from.
     var folder: String?
-    /// Photos album it was made from (`localIdentifier`, only valid on the device that picked
-    /// it); picking the same album again replaces it.
+    /// The Photos album it plays (`localIdentifier`). Only on the device that picked it.
     var album: String?
+    /// Bookmark of the folder it plays. Only on the device that picked it.
+    var bookmark: Data?
+    /// The folder's path, to recognise the folder when it is picked again.
+    var path: String?
+    /// Whether the images are kept as copies in the app.
+    var copy = true
+    /// Images in it: the saved ones once the copies are done, otherwise what the folder or
+    /// album held the last time it was opened.
     var count: Int
     var saved = 0
     var bytes: Int64 = 0
@@ -104,6 +113,10 @@ nonisolated struct Show: Codable, Identifiable, Equatable, Sendable {
         name = try c.decode(String.self, forKey: .name)
         folder = try c.decodeIfPresent(String.self, forKey: .folder)
         album = try c.decodeIfPresent(String.self, forKey: .album)
+        bookmark = try c.decodeIfPresent(Data.self, forKey: .bookmark)
+        path = try c.decodeIfPresent(String.self, forKey: .path)
+        // Slideshows from before copies became optional all have one.
+        copy = try c.decodeIfPresent(Bool.self, forKey: .copy) ?? true
         count = try c.decodeIfPresent(Int.self, forKey: .count) ?? 0
         saved = try c.decodeIfPresent(Int.self, forKey: .saved) ?? 0
         bytes = try c.decodeIfPresent(Int64.self, forKey: .bytes) ?? 0
@@ -118,6 +131,13 @@ nonisolated struct Show: Codable, Identifiable, Equatable, Sendable {
         modified = try c.decodeIfPresent(Date.self, forKey: .modified) ?? .distantPast
         content = try c.decodeIfPresent(Date.self, forKey: .content) ?? .distantPast
     }
+
+    /// Whether its folder or album can be opened again on this device.
+    var hasReference: Bool { album != nil || bookmark != nil }
+
+    /// Plays from the saved copies rather than from the folder or album. Unfinished copies
+    /// of a folder or album are skipped: the source has everything.
+    var playsFromCopy: Bool { copy && (done || !hasReference) }
 
     static func newID() -> String {
         String(Int(Date().timeIntervalSince1970 * 1000), radix: 36) + String(UUID().uuidString.prefix(6)).lowercased()

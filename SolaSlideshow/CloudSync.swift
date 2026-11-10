@@ -59,6 +59,9 @@ final class CloudSync {
         var engine: CKSyncEngine.State.Serialization?
         var systemFields: [String: Data] = [:]
         var lastSync: Date?
+        /// Sync was turned on, but what is on the device hasn't been queued for upload yet
+        /// (that needs one successful look at what is in iCloud already).
+        var firstUploadPending: Bool?
     }
 
     /// - Parameters:
@@ -81,6 +84,9 @@ final class CloudSync {
     }
 
     func recordID(_ name: String) -> CKRecord.ID { CKRecord.ID(recordName: name, zoneID: zoneID) }
+
+    /// Whether a record is in iCloud as far as this device has seen.
+    func knows(_ name: String) -> Bool { saved.systemFields[name] != nil }
 
     // MARK: Local changes
 
@@ -127,19 +133,11 @@ final class CloudSync {
 
         saved = Saved()
         saved.on = true
+        saved.firstUploadPending = true
         isOn = true
         persist()
         start()
-        guard let engine else { return }
-        do {
-            // Fetch first, so items that are already in iCloud aren't uploaded again.
-            try await engine.fetchChanges()
-            engine.state.add(pendingDatabaseChanges: [.saveZone(CKRecordZone(zoneID: zoneID))])
-            uploadAll(onlyNew: true)
-            try await engine.sendChanges()
-        } catch {
-            report(error)
-        }
+        await syncNow()
     }
 
     /// Stops syncing. The data stays on this device; with `deleteFromICloud` the copy in
@@ -168,6 +166,15 @@ final class CloudSync {
         guard let engine else { return }
         do {
             try await engine.fetchChanges()
+            if saved.firstUploadPending == true, engine === self.engine {
+                // Only after a fetch that worked, so items that are already in iCloud aren't
+                // uploaded again. If sync was turned on without a connection, this is where
+                // what is on the device gets queued once the connection is back.
+                engine.state.add(pendingDatabaseChanges: [.saveZone(CKRecordZone(zoneID: zoneID))])
+                uploadAll(onlyNew: true)
+                saved.firstUploadPending = nil
+                persist()
+            }
             try await engine.sendChanges()
         } catch {
             report(error)
@@ -354,6 +361,7 @@ extension CloudSync: CKSyncEngineDelegate {
         }
 
         var resend: [CKSyncEngine.PendingRecordZoneChange] = []
+        var incomplete: [CKRecord.ID] = []
         var needsZone = false
         var merged = false
         for failure in changes.failedRecordSaves {
@@ -365,6 +373,9 @@ extension CloudSync: CKSyncEngineDelegate {
                 saved.systemFields[id.recordName] = server.systemFields
                 if store?.merge(server) == true {
                     resend.append(.saveRecord(id))
+                } else if server.allKeys().contains(where: { (server[$0] as? CKAsset).map { $0.fileURL == nil } ?? false }) {
+                    // The server's version won, but it came without its file.
+                    incomplete.append(id)
                 } else {
                     merged = true
                 }
@@ -388,6 +399,22 @@ extension CloudSync: CKSyncEngineDelegate {
         engine.state.add(pendingRecordZoneChanges: resend)
         persist()
         if merged { store?.didApplyChanges() }
+        if !incomplete.isEmpty { Task { await fetchInFull(incomplete, for: engine) } }
+    }
+
+    /// Gets records whose upload was refused once more, this time with their files, and
+    /// applies them like any other change from iCloud.
+    private func fetchInFull(_ ids: [CKRecord.ID], for engine: CKSyncEngine) async {
+        let db = CKContainer(identifier: Self.containerID).privateCloudDatabase
+        guard let results = try? await db.records(for: ids), engine === self.engine, let store else { return }
+        var resend: [CKSyncEngine.PendingRecordZoneChange] = []
+        for case .success(let record) in results.values {
+            saved.systemFields[record.recordID.recordName] = record.systemFields
+            if store.merge(record), !pending(record.recordID) { resend.append(.saveRecord(record.recordID)) }
+        }
+        engine.state.add(pendingRecordZoneChanges: resend)
+        persist()
+        store.didApplyChanges()
     }
 }
 

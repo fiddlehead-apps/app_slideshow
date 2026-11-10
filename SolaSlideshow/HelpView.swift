@@ -37,7 +37,9 @@ struct HelpView: View {
                     section("Settings",
                             "The slider button at the bottom left opens the settings: time per image, image format (all images, or only portrait or only landscape ones), shuffle, fill screen (crops the edges instead of showing the whole image), fading between images, and whether the progress bar runs along the bottom edge. Each slideshow remembers its own settings.")
                     section("Your slideshows",
-                            "Every slideshow you start appears on the start screen and plays again with one tap. For that the app keeps copies of the images at screen size, so the folder or album is not needed anymore. Choosing the same folder or album again updates its slideshow instead of adding a second one. Use the pencil to rename a slideshow and the bin to delete it.")
+                            "Every slideshow you start appears on the start screen and plays again with one tap. A folder or an album plays straight from Files or Photos, so it always shows what is in there now. Choosing the same folder or album again opens its slideshow instead of adding a second one. Use the pencil to rename a slideshow and the bin to delete it.")
+                    section("Copies",
+                            "Turn on **Keep a copy on this device** in a slideshow’s settings and the app saves its images at screen size. The slideshow then plays without the folder or album, also offline, and shows the images as they were when the copy was made. Photos and files you pick one by one are always saved this way, because they can’t be opened again later. The list shows how much space each copy takes; **Delete copy** frees it.")
 
                     // Tapping this paragraph five times asks for Face ID and opens the hidden slideshows.
                     section("Private",
@@ -51,7 +53,7 @@ struct HelpView: View {
 
                     VStack(alignment: .leading, spacing: 10) {
                         section("iCloud",
-                                "Off unless you turn it on. Then your slideshows with their saved copies, and the settings for new slideshows, sync through your private iCloud database to your devices with the same Apple Account. The copies count toward your iCloud storage.")
+                                "Off unless you turn it on. Then the slideshows that have a copy, and the settings for new slideshows, sync through your private iCloud database to your devices with the same Apple Account. A slideshow without a copy stays on the device that has its folder or album. The copies count toward your iCloud storage.")
                         CloudSyncToggle(sync: library.cloud)
                             .font(.system(size: 16))
                             .tint(Color.switchOn)

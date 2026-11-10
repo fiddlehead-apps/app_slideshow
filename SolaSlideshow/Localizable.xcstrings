@@ -83,6 +83,28 @@
         }
       }
     },
+    "%lld images take roughly %@ on this device and in your iCloud." : {
+      "comment" : "Warning before a big copy when iCloud sync is on; %@ is a size like 2.4 GB",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld Bilder belegen ungefähr %@ auf diesem Gerät und in deiner iCloud."
+          }
+        }
+      }
+    },
+    "%lld images take roughly %@ on this device." : {
+      "comment" : "Warning before a big copy; %@ is a size like 2.4 GB",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld Bilder belegen ungefähr %@ auf diesem Gerät."
+          }
+        }
+      }
+    },
     "%lld min" : {
       "comment" : "Minutes per image",
       "localizations" : {
@@ -105,23 +127,13 @@
         }
       }
     },
-    "%lld of %lld saved. Choose the album again to finish." : {
-      "comment" : "Saved slideshow from a Photos album, not all images saved yet",
+    "%lld of %lld images from “%@” couldn’t be read and were left out of the copy." : {
+      "comment" : "First number: images that failed, second: all images, %@: slideshow name",
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%lld von %lld gespeichert. Wähle das Album noch einmal, um den Rest zu speichern."
-          }
-        }
-      }
-    },
-    "%lld of %lld saved. Choose the folder again to finish." : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld von %lld gespeichert. Wähle den Ordner noch einmal, um den Rest zu speichern."
+            "value" : "%lld von %lld Bildern aus „%@“ ließen sich nicht lesen und fehlen in der Kopie."
           }
         }
       }
@@ -243,6 +255,28 @@
         }
       }
     },
+    "Copies" : {
+      "comment" : "Help heading",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kopien"
+          }
+        }
+      }
+    },
+    "Copy on this device: %@" : {
+      "comment" : "Below a slideshow in the list; %@ is a size like 86 MB",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kopie auf diesem Gerät: %@"
+          }
+        }
+      }
+    },
     "Crops edges instead of showing the whole image" : {
       "comment" : "Explains the Fill screen setting",
       "localizations" : {
@@ -296,6 +330,72 @@
         }
       }
     },
+    "Delete copy" : {
+      "comment" : "Button next to the size of a slideshow’s copy, and confirm button",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kopie löschen"
+          }
+        }
+      }
+    },
+    "Delete slideshow" : {
+      "comment" : "Confirm button when deleting the copy deletes the whole slideshow",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Diashow löschen"
+          }
+        }
+      }
+    },
+    "Delete the copy of %@" : {
+      "comment" : "Accessibility label of the “Delete copy” button; %@ is the slideshow name",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kopie von %@ löschen"
+          }
+        }
+      }
+    },
+    "Delete the copy of “%@”?" : {
+      "comment" : "Question before a slideshow’s copy is deleted; %@ is the slideshow name",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kopie von „%@“ löschen?"
+          }
+        }
+      }
+    },
+    "Delete the copy?" : {
+      "comment" : "Question in the slideshow settings before the copy is deleted",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kopie löschen?"
+          }
+        }
+      }
+    },
+    "Delete “%@”?" : {
+      "comment" : "Question before a slideshow that only exists as its copy is deleted; %@ is the slideshow name",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "„%@“ löschen?"
+          }
+        }
+      }
+    },
     "Done" : {
       "comment" : "Closes the help screen and the slideshow settings",
       "localizations" : {
@@ -307,12 +407,13 @@
         }
       }
     },
-    "Every slideshow you start appears on the start screen and plays again with one tap. For that the app keeps copies of the images at screen size, so the folder or album is not needed anymore. Choosing the same folder or album again updates its slideshow instead of adding a second one. Use the pencil to rename a slideshow and the bin to delete it." : {
+    "Every slideshow you start appears on the start screen and plays again with one tap. A folder or an album plays straight from Files or Photos, so it always shows what is in there now. Choosing the same folder or album again opens its slideshow instead of adding a second one. Use the pencil to rename a slideshow and the bin to delete it." : {
+      "comment" : "Help text",
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Jede Diashow, die du startest, erscheint auf der Startseite und läuft mit einem Tipp wieder an. Dafür behält die App Kopien der Bilder in Bildschirmgröße, der Ordner oder das Album wird also nicht mehr gebraucht. Wählst du denselben Ordner oder dasselbe Album noch einmal, wird seine Diashow aktualisiert, statt eine zweite anzulegen. Mit dem Stift benennst du eine Diashow um, mit dem Papierkorb löschst du sie."
+            "value" : "Jede Diashow, die du startest, erscheint auf der Startseite und läuft mit einem Tipp wieder an. Ein Ordner oder ein Album wird direkt aus Dateien bzw. Fotos abgespielt und zeigt deshalb immer, was gerade darin ist. Wählst du denselben Ordner oder dasselbe Album noch einmal, öffnet sich seine Diashow, statt eine zweite anzulegen. Mit dem Stift benennst du eine Diashow um, mit dem Papierkorb löschst du sie."
           }
         }
       }
@@ -426,6 +527,28 @@
         }
       }
     },
+    "It is also removed from iCloud and from your other devices." : {
+      "comment" : "Explains what deleting the copy does when the slideshow is synced",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sie wird auch aus iCloud und von deinen anderen Geräten entfernt."
+          }
+        }
+      }
+    },
+    "Keep a copy on this device" : {
+      "comment" : "Switch in the settings of a slideshow that plays from a folder or an album",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kopie auf diesem Gerät behalten"
+          }
+        }
+      }
+    },
     "Landscape" : {
       "comment" : "Image format setting: only images wider than tall",
       "localizations" : {
@@ -455,6 +578,28 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Mediathek"
+          }
+        }
+      }
+    },
+    "Make a copy" : {
+      "comment" : "Confirm button",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kopie anlegen"
+          }
+        }
+      }
+    },
+    "Make a copy of all images?" : {
+      "comment" : "Question before a copy of a very big folder or album is made",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Alle Bilder kopieren?"
           }
         }
       }
@@ -513,6 +658,17 @@
         }
       }
     },
+    "No copy of “%@” could be made: none of its images could be read." : {
+      "comment" : "%@ is the slideshow name",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Von „%@“ konnte keine Kopie angelegt werden: Keines der Bilder ließ sich lesen."
+          }
+        }
+      }
+    },
     "No landscape images in this slideshow." : {
       "comment" : "Shown instead of the slideshow when the image format setting leaves nothing to show",
       "localizations" : {
@@ -535,23 +691,45 @@
         }
       }
     },
-    "Not saved yet. Choose the album again." : {
-      "comment" : "Saved slideshow from a Photos album, no images saved yet",
+    "None of the images from “%@” could be read, so there is no slideshow." : {
+      "comment" : "%@ is the slideshow name",
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Noch nicht gespeichert. Wähle das Album noch einmal."
+            "value" : "Keines der Bilder aus „%@“ ließ sich lesen, deshalb gibt es keine Diashow."
           }
         }
       }
     },
-    "Nothing from this slideshow is saved yet. Choose the album again to save it." : {
+    "None of this slideshow’s images are on this device yet." : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Von dieser Diashow ist noch nichts gespeichert. Wähle das Album noch einmal, um sie zu speichern."
+            "value" : "Von dieser Diashow ist noch kein Bild auf diesem Gerät."
+          }
+        }
+      }
+    },
+    "Off unless you turn it on. Then the slideshows that have a copy, and the settings for new slideshows, sync through your private iCloud database to your devices with the same Apple Account. A slideshow without a copy stays on the device that has its folder or album. The copies count toward your iCloud storage." : {
+      "comment" : "Help text",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aus, solange du es nicht einschaltest. Dann werden die Diashows mit Kopie und die Einstellungen für neue Diashows über deine private iCloud-Datenbank mit deinen Geräten mit demselben Apple Account synchronisiert. Eine Diashow ohne Kopie bleibt auf dem Gerät, das ihren Ordner oder ihr Album hat. Die Kopien zählen zu deinem iCloud-Speicher."
+          }
+        }
+      }
+    },
+    "Only %lld of %lld images were saved." : {
+      "comment" : "Status of a slideshow of single photos or files whose copying was interrupted",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nur %lld von %lld Bildern wurden gespeichert."
           }
         }
       }
@@ -596,6 +774,39 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Wähle einen Ordner in Dateien oder ein Album in Fotos, und alle Bilder darin laufen im Vollbild."
+          }
+        }
+      }
+    },
+    "Plays without the folder or album, also offline" : {
+      "comment" : "Below the switch “Keep a copy on this device”",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Läuft ohne den Ordner oder das Album, auch offline"
+          }
+        }
+      }
+    },
+    "Plays without the folder or album, also offline, and syncs with iCloud" : {
+      "comment" : "Below the switch “Keep a copy on this device” when iCloud sync is on",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Läuft ohne den Ordner oder das Album, auch offline, und wird mit iCloud synchronisiert"
+          }
+        }
+      }
+    },
+    "Plays without the folder or album, also offline. Uses %@." : {
+      "comment" : "Below the switch “Keep a copy on this device”; %@ is a size like 86 MB",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Läuft ohne den Ordner oder das Album, auch offline. Belegt %@."
           }
         }
       }
@@ -701,26 +912,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Keines dieser Bilder lässt sich auf diesem Gerät öffnen."
-          }
-        }
-      }
-    },
-    "Not saved yet. Choose the folder again." : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Noch nicht gespeichert. Wähle den Ordner noch einmal."
-          }
-        }
-      }
-    },
-    "Nothing from this slideshow is saved yet. Choose the folder again to save it." : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Von dieser Diashow ist noch nichts gespeichert. Wähle den Ordner noch einmal, um sie zu speichern."
           }
         }
       }
@@ -1050,6 +1241,17 @@
         }
       }
     },
+    "Storage on this device is full, so “%@” plays without a copy." : {
+      "comment" : "%@ is the slideshow name",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Der Speicher dieses Geräts ist voll, deshalb läuft „%@“ ohne Kopie."
+          }
+        }
+      }
+    },
     "Storage on this device is full. %lld of %lld images from “%@” were saved." : {
       "comment" : "First number: saved images, second: all images, %@: slideshow name",
       "localizations" : {
@@ -1057,6 +1259,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Der Speicher dieses Geräts ist voll. %lld von %lld Bildern aus „%@“ wurden gespeichert."
+          }
+        }
+      }
+    },
+    "Storage on this device is full. None of the images from “%@” could be saved." : {
+      "comment" : "%@ is the slideshow name",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Der Speicher dieses Geräts ist voll. Keines der Bilder aus „%@“ konnte gespeichert werden."
           }
         }
       }
@@ -1119,12 +1332,56 @@
         }
       }
     },
+    "The album of “%@” can’t be found in Photos anymore. Choose the album again." : {
+      "comment" : "%@ is the slideshow name",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Das Album von „%@“ ist in Fotos nicht mehr zu finden. Wähle das Album noch einmal."
+          }
+        }
+      }
+    },
+    "The folder of “%@” can’t be opened right now. If it was moved or deleted, choose the folder again." : {
+      "comment" : "%@ is the slideshow name",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Der Ordner von „%@“ lässt sich gerade nicht öffnen. Wurde er verschoben oder gelöscht, wähle den Ordner noch einmal."
+          }
+        }
+      }
+    },
     "The slider button at the bottom left opens the settings: time per image, image format (all images, or only portrait or only landscape ones), shuffle, fill screen (crops the edges instead of showing the whole image), fading between images, and whether the progress bar runs along the bottom edge. Each slideshow remembers its own settings." : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Der Regler-Knopf unten links öffnet die Einstellungen: Zeit pro Bild, Bildformat (alle Bilder oder nur Hochformat oder nur Querformat), zufällige Reihenfolge, Bildschirm füllen (schneidet die Ränder ab, statt das ganze Bild zu zeigen), Überblenden und ob der Fortschrittsbalken am unteren Rand mitläuft. Jede Diashow merkt sich ihre eigenen Einstellungen."
+          }
+        }
+      }
+    },
+    "The slideshow stays in the list and plays from its album in Photos." : {
+      "comment" : "Explains what deleting the copy does",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die Diashow bleibt in der Liste und läuft aus ihrem Album in Fotos."
+          }
+        }
+      }
+    },
+    "The slideshow stays in the list and plays from its folder in Files." : {
+      "comment" : "Explains what deleting the copy does",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die Diashow bleibt in der Liste und läuft aus ihrem Ordner in Dateien."
           }
         }
       }
@@ -1136,6 +1393,28 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Dünne Linie am unteren Rand, die bis zum nächsten Bild läuft"
+          }
+        }
+      }
+    },
+    "This frees %@ on this device." : {
+      "comment" : "Explains what deleting the copy does; %@ is a size like 86 MB",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Das gibt %@ auf diesem Gerät frei."
+          }
+        }
+      }
+    },
+    "This slideshow only exists as its copy, so deleting the copy deletes the whole slideshow." : {
+      "comment" : "Explains what deleting the copy does",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Diese Diashow gibt es nur als Kopie. Wenn du die Kopie löschst, wird deshalb die ganze Diashow gelöscht."
           }
         }
       }
@@ -1160,6 +1439,17 @@
         }
       }
     },
+    "Turn on **Keep a copy on this device** in a slideshow’s settings and the app saves its images at screen size. The slideshow then plays without the folder or album, also offline, and shows the images as they were when the copy was made. Photos and files you pick one by one are always saved this way, because they can’t be opened again later. The list shows how much space each copy takes; **Delete copy** frees it." : {
+      "comment" : "Help text. Bold parts must match the switch and button titles",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Schalte in den Einstellungen einer Diashow **Kopie auf diesem Gerät behalten** ein, dann speichert die App ihre Bilder in Bildschirmgröße. Die Diashow läuft danach ohne den Ordner oder das Album, auch offline, und zeigt die Bilder so, wie sie beim Kopieren waren. Fotos und Dateien, die du einzeln auswählst, werden immer so gespeichert, weil sie sich später nicht noch einmal öffnen lassen. Die Liste zeigt, wie viel Platz jede Kopie belegt; **Kopie löschen** gibt ihn frei."
+          }
+        }
+      }
+    },
     "Unit" : {
       "localizations" : {
         "de" : {
@@ -1176,6 +1466,28 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Version %@"
+          }
+        }
+      }
+    },
+    "Waiting to be saved" : {
+      "comment" : "Status of a slideshow whose copy is made after another one",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wartet aufs Speichern"
+          }
+        }
+      }
+    },
+    "Waiting until another slideshow is saved" : {
+      "comment" : "Below the switch “Keep a copy on this device” while another copy is being made",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wartet, bis eine andere Diashow gespeichert ist"
           }
         }
       }
@@ -1483,17 +1795,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Wird aus iCloud geladen: %lld von %lld"
-          }
-        }
-      }
-    },
-    "Off unless you turn it on. Then your slideshows with their saved copies, and the settings for new slideshows, sync through your private iCloud database to your devices with the same Apple Account. The copies count toward your iCloud storage." : {
-      "comment" : "Help, explains the iCloud sync switch",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Aus, solange du es nicht einschaltest. Dann werden deine Diashows mit ihren gespeicherten Kopien und die Einstellungen für neue Diashows über deine private iCloud-Datenbank mit deinen Geräten mit demselben Apple Account abgeglichen. Die Kopien belegen deinen iCloud-Speicher."
           }
         }
       }

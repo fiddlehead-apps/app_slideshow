@@ -30,9 +30,8 @@ Bildschirm füllen, Überblenden und – neu gegenüber der Web-App – ob der
 die zuletzt benutzten gelten als Vorgabe für neue.
 
 **Your slideshows:** Jede gestartete Diashow landet in der Liste, sortiert nach
-zuletzt gespielt. Wie in der Web-App werden verkleinerte Kopien
-(Bildschirmauflösung, max. 2732 px) gespeichert, danach braucht es den Ordner
-nicht mehr. Derselbe Ordner oder dasselbe Album noch einmal gewählt ersetzt den alten Eintrag.
+zuletzt gespielt. Ordner und Alben laufen direkt aus Dateien bzw. Fotos (siehe *Kopien*).
+Derselbe Ordner oder dasselbe Album noch einmal gewählt öffnet den vorhandenen Eintrag.
 Stift = umbenennen, Papierkorb = zweimal tippen zum Löschen.
 
 **Hilfe:** Das „?“ oben rechts erklärt kurz die Bedienung.
@@ -46,25 +45,66 @@ bietet *Open Settings* an. Ohne Zugriff erklärt die Startseite, wo man ihn eins
 dem Mac: *Systemeinstellungen › Datenschutz & Sicherheit › Fotos*; bei lokal signierten
 Builds kann macOS nach jedem Neubau erneut fragen).
 
-Wie bei Ordnern werden verkleinerte Kopien gespeichert, Fotos, die nur in iCloud liegen,
-lädt PhotoKit dabei nach. Die Diashow merkt sich das Album über seinen
-`localIdentifier` (Feld `album`, auch im iCloud-Record). Der gilt nur auf dem Gerät, auf dem
-das Album gewählt wurde: Auf einem anderen Gerät legt dasselbe Album eine neue Diashow an.
+Die Diashow merkt sich das Album über seinen `localIdentifier` (Feld `album`) und spielt es
+bei jedem Öffnen so ab, wie es gerade ist; Fotos, die nur in iCloud liegen, lädt PhotoKit
+nach. Der `localIdentifier` gilt nur auf dem Gerät, auf dem das Album gewählt wurde.
+
+## Kopien
+
+Eine Diashow kann ihre Bilder als verkleinerte Kopien in der App behalten (JPEG, längste
+Kante höchstens 2732 px, auf jedem Gerät gleich). Ob sie das tut, hängt von der Quelle ab:
+
+| Quelle | Kopie | Abspielen |
+| --- | --- | --- |
+| Ordner | wahlweise, Standard aus | direkt aus dem Ordner (Bookmark), mit Kopie aus der Kopie |
+| Album aus Fotos | wahlweise, Standard aus | direkt aus dem Album, mit Kopie aus der Kopie |
+| einzeln gewählte Fotos/Dateien | immer | aus der Kopie (lassen sich später nicht noch einmal öffnen) |
+| aus iCloud empfangen, oder von vor dieser Version | immer | aus der Kopie |
+
+* **Einschalten:** in den Einstellungen der laufenden Diashow *Keep a copy on this device*.
+  Ab 1000 Bildern fragt die App vorher und nennt den ungefähren Platzbedarf.
+* **Anzeige und Löschen:** Unter jedem Eintrag mit Kopie steht *Copy on this device: 86 MB*
+  mit *Delete copy*. Bei Ordnern und Alben bleibt die Diashow danach in der Liste; gibt es
+  sie nur als Kopie, sagt die Rückfrage, dass die ganze Diashow gelöscht wird.
+* **Reihenfolge:** Kopien entstehen nacheinander. Eine neue Auswahl bricht eine laufende
+  Kopie nicht ab, sondern stellt sich an („Waiting to be saved“).
+* **Unterbrechungen:** Nach dem Verlassen der App läuft das Kopieren die Zeit weiter, die
+  iOS gewährt. Wurde es abgeschnitten, fängt es beim nächsten Start für Ordner und Alben von
+  vorn an; bis dahin spielt die Diashow aus der Quelle. Bei einzeln gewählten Fotos bleibt
+  das Gespeicherte („Only 37 of 100 images were saved“).
+* **Hänger:** Ein Bild, das nach 3 Minuten nicht da ist (kein Netz, iCloud-Download hängt),
+  wird ausgelassen. Am Ende meldet die Startseite, wie viele Bilder fehlen. Lässt sich gar
+  nichts lesen oder ist der Speicher voll, läuft ein Ordner/Album ohne Kopie weiter.
+* **Derselbe Ordner** wird am Pfad erkannt, nicht mehr am Namen. Nur Einträge ohne
+  gemerkten Ordner (alte, oder von einem anderen Gerät) werden noch über den Namen
+  zugeordnet. Versteckte Diashows übernimmt eine neue Auswahl nie.
+* **Backups:** Der Ordner `Slideshows` ist von Geräte- und iCloud-Backups ausgenommen. Auf
+  ein neues Gerät kommen Diashows über den iCloud-Sync.
+* **Liste:** `library.json` wird beim Start nach `library.backup.json` gesichert. Ist sie
+  beschädigt, lädt die App die Sicherung (die kaputte Datei bleibt als
+  `library.damaged.json` liegen); ist sie nur gesperrt, wird sie nicht überschrieben.
 
 ## iCloud-Sync
 
 Standardmäßig aus. Eingeschaltet wird er in der Hilfe („?“) unter *iCloud*. Dann gehen über
 die private CloudKit-Datenbank des Nutzers (CKSyncEngine, eine Record-Zone „Slideshows“):
 
-* jede Diashow (Name, Ordner bzw. Album, Dateinamen, Einstellungen, versteckt, zuletzt gespielt),
+* jede Diashow **mit Kopie** (Name, Ordnername, Dateinamen, Einstellungen, versteckt, zuletzt gespielt),
 * jede gespeicherte Kopie als eigener Record mit Asset,
 * die Vorgaben für neue Diashows.
+
+Diashows ohne Kopie bleiben auf dem Gerät, das ihren Ordner oder ihr Album hat. Wird die
+Kopie gelöscht, verschwindet die Diashow aus iCloud und von den anderen Geräten (die
+Rückfrage sagt das). Kommt eine solche Löschung auf einem Gerät an, das den Ordner oder das
+Album selbst hat, bleibt die Diashow dort ohne Kopie erhalten.
 
 Inhalte liegen in `encryptedValues` bzw. als Assets, also verschlüsselt. Vorschaubilder,
 Größen und wie viele Bilder schon da sind, rechnet jedes Gerät selbst aus; solange Bilder
 noch kommen, steht in der Liste „Wird aus iCloud geladen: 12 von 80“. Hochgeladen wird eine
-Diashow erst, wenn alle Kopien fertig sind. Konflikte: die neuere Seite gewinnt (Details
-über `modified`, Bilder über `content`).
+Diashow erst, wenn alle Kopien fertig sind. Konflikte: die neuere Seite gewinnt, getrennt
+für die Details (`modified`) und die Bilder (`content`, dazu Anzahl und Dateinamen). Wird
+der Sync ohne Verbindung eingeschaltet, lädt die App das Vorhandene hoch, sobald der erste
+Abgleich geklappt hat.
 
 Ausschalten fragt, ob die Daten in iCloud bleiben oder gelöscht werden; auf dem Gerät bleibt
 alles. Abmelden, Account-Wechsel oder in iCloud gelöschte Daten schalten den Sync ebenfalls
@@ -197,9 +237,9 @@ python3 tools/make_icon.py
 | `StartView.swift` | Startseite mit Liste, Warte-Hinweis, Verstecken-Rückfrage |
 | `ShowRow.swift` | Listeneintrag, Mehrfach-Tipp-Erkennung |
 | `PlayerView.swift` / `Player.swift` | Diashow: Anzeige, Gesten, Takt, Vorladen, Einstellungsblatt |
-| `Library.swift` | Gespeicherte Diashows (`Application Support/Slideshows`), Kopieren im Hintergrund, Records für iCloud |
+| `Library.swift` | Liste der Diashows (`Application Support/Slideshows`), Ordner/Alben wieder öffnen, Kopien (Warteschlange), Records für iCloud |
 | `CloudSync.swift` / `CloudSyncToggle.swift` | iCloud-Sync (CKSyncEngine), Schalter mit Status; gleiche Dateien wie in Sola Birthdays |
-| `Images.swift` | Ordner durchsuchen, iCloud-Dateien laden, verkleinern (ImageIO) |
+| `Images.swift` | Ordner durchsuchen und per Bookmark merken, iCloud-Dateien laden, verkleinern (ImageIO) |
 | `Albums.swift` | Alben aus Fotos (PhotoKit): Zugriff, Album-Liste, Bilder laden |
 | `HelpView.swift` | Hilfe, Face-ID-Entsperren, versteckte Diashows |
 | `Models.swift` / `Theme.swift` | Datenmodell, Farben wie in der Web-App |

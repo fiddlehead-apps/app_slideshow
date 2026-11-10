@@ -33,11 +33,14 @@ nonisolated enum SourceItem: Sendable {
     }
 
     /// Reads the image bytes. Files are read through a file coordinator, which
-    /// makes iCloud Drive download items that are not on the device yet.
+    /// makes iCloud Drive download items that are not on the device yet. Cancelling the
+    /// task stops a read that is still waiting for a download.
     @concurrent func data() async throws -> Data {
         switch self {
         case .file(let url, _, let access):
-            return try withExtendedLifetime(access) { try Self.coordinatedRead(url) }
+            let d = try await Self.coordinatedRead(url)
+            withExtendedLifetime(access) {}
+            return d
         case .photo(let item):
             guard let d = try await item.loadTransferable(type: Data.self) else { throw ImageError.unreadable }
             return d
@@ -46,27 +49,93 @@ nonisolated enum SourceItem: Sendable {
         }
     }
 
-    private static func coordinatedRead(_ url: URL) throws -> Data {
-        var coordError: NSError?
-        var result: Result<Data, Error> = .failure(ImageError.unreadable)
-        NSFileCoordinator().coordinate(readingItemAt: url, options: [], error: &coordError) { u in
-            result = Result { try Data(contentsOf: u) }
+    /// Like `data()`, but gives up after `timeout`, so one image that never arrives (no
+    /// network, a download that hangs) can't hold up everything after it.
+    @concurrent func data(timeout: Duration) async throws -> Data {
+        try await withThrowingTaskGroup(of: Data.self) { group in
+            group.addTask { try await self.data() }
+            group.addTask {
+                try await Task.sleep(for: timeout)
+                throw ImageError.timedOut
+            }
+            defer { group.cancelAll() }
+            guard let first = try await group.next() else { throw ImageError.unreadable }
+            return first
         }
-        if let coordError { throw coordError }
-        return try result.get()
+    }
+
+    @concurrent private static func coordinatedRead(_ url: URL) async throws -> Data {
+        // cancel() may be called from any thread; it makes a waiting coordinate() return.
+        nonisolated(unsafe) let coordinator = NSFileCoordinator()
+        return try await withTaskCancellationHandler {
+            try Task.checkCancellation()
+            var coordError: NSError?
+            var result: Result<Data, Error> = .failure(ImageError.unreadable)
+            coordinator.coordinate(readingItemAt: url, options: [], error: &coordError) { u in
+                result = Result { try Data(contentsOf: u) }
+            }
+            if let coordError { throw coordError }
+            return try result.get()
+        } onCancel: {
+            coordinator.cancel()
+        }
     }
 }
 
-nonisolated enum ImageError: Error { case unreadable, encodeFailed }
+nonisolated enum ImageError: Error { case unreadable, encodeFailed, timedOut }
+
+/// Remembers a folder picked in Files, so a slideshow can open it again later.
+nonisolated enum Bookmark {
+    nonisolated struct Opened: Sendable {
+        let url: URL
+        let access: FolderAccess
+        /// A new bookmark if the old one needs replacing (the folder was moved or renamed).
+        let fresh: Data?
+    }
+
+    static func make(_ url: URL) -> Data? {
+        #if targetEnvironment(macCatalyst)
+        if let d = try? url.bookmarkData(options: .withSecurityScope, includingResourceValuesForKeys: nil, relativeTo: nil) {
+            return d
+        }
+        #endif
+        return try? url.bookmarkData(options: [], includingResourceValuesForKeys: nil, relativeTo: nil)
+    }
+
+    private static func resolve(_ data: Data) -> (url: URL, stale: Bool)? {
+        var stale = false
+        #if targetEnvironment(macCatalyst)
+        if let u = try? URL(resolvingBookmarkData: data, options: .withSecurityScope, relativeTo: nil, bookmarkDataIsStale: &stale) {
+            return (u, stale)
+        }
+        #endif
+        guard let u = try? URL(resolvingBookmarkData: data, options: [], relativeTo: nil, bookmarkDataIsStale: &stale) else { return nil }
+        return (u, stale)
+    }
+
+    /// Opens the folder a bookmark points to. nil if it is gone or can't be reached right now.
+    @concurrent static func open(_ data: Data) async -> Opened? {
+        guard let found = resolve(data) else { return nil }
+        let access = FolderAccess(found.url)
+        guard (try? found.url.checkResourceIsReachable()) == true else { return nil }
+        return Opened(url: found.url, access: access, fresh: found.stale ? make(found.url) : nil)
+    }
+
+    /// The same folder gives the same path, however it was picked.
+    static func path(_ url: URL) -> String { url.standardizedFileURL.resolvingSymlinksInPath().path }
+}
 
 nonisolated enum Images {
     static let extensions: Set<String> = ["jpg", "jpeg", "png", "gif", "webp", "heic", "heif", "avif", "bmp", "tif", "tiff"]
 
-    /// Longest edge kept for saved copies: the screen's native resolution,
-    /// at least 1600 and at most 2732 pixels (same rule as the web app).
-    @MainActor static var maxEdge: Int {
+    /// Longest edge of saved copies. The same on every device, so a copy made on a small
+    /// iPhone still looks right on an iPad or a Mac it syncs to.
+    static let copyEdge = 2732
+
+    /// Longest edge an image is decoded to for showing it: what this device's screen can show.
+    @MainActor static var displayEdge: Int {
         let b = UIScreen.main.nativeBounds
-        return min(2732, max(1600, Int(max(b.width, b.height))))
+        return min(6016, max(1600, Int(max(b.width, b.height))))
     }
 
     /// Lists every image in a folder and its subfolders, sorted by path the way

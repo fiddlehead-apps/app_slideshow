@@ -22,11 +22,12 @@ nonisolated struct PhotoAlbum: Identifiable, Hashable, Sendable {
 nonisolated enum PhotoAlbums {
     enum Access { case full, limited, denied }
 
-    /// Asks for access the first time. Picking an album needs read access to the library;
-    /// with "limited" access Photos only shows the images the user selected, and no albums.
-    @MainActor static func requestAccess() async -> Access {
+    /// The app's access to Photos; with `ask` the system asks the first time. Picking an
+    /// album needs read access to the library; with "limited" access Photos only shows the
+    /// images the user selected, and no albums.
+    @MainActor static func access(ask: Bool) async -> Access {
         var status = PHPhotoLibrary.authorizationStatus(for: .readWrite)
-        if status == .notDetermined {
+        if status == .notDetermined, ask {
             status = await PHPhotoLibrary.requestAuthorization(for: .readWrite)
         }
         switch status {
@@ -34,6 +35,15 @@ nonisolated enum PhotoAlbums {
         case .limited: return .limited
         default: return .denied
         }
+    }
+
+    /// What to tell the user when the app may not read the Photos library.
+    @MainActor static var noAccessText: String {
+        #if targetEnvironment(macCatalyst)
+        return String(localized: "Sola Slideshow has no access to your photos. To choose an album, turn on Sola Slideshow in System Settings › Privacy & Security › Photos.")
+        #else
+        return String(localized: "Sola Slideshow has no access to your photos. To choose an album, allow access to all photos in the Settings app under Apps › Sola Slideshow › Photos.")
+        #endif
     }
 
     nonisolated struct Sections: Sendable {
@@ -78,9 +88,10 @@ nonisolated enum PhotoAlbums {
         return collections(PHCollection.fetchCollections(in: list, options: nil))
     }
 
-    /// The album's images in the order Photos shows them.
-    @concurrent static func items(inAlbum id: String) async -> [SourceItem] {
-        guard let c = PHAssetCollection.fetchAssetCollections(withLocalIdentifiers: [id], options: nil).firstObject else { return [] }
+    /// The album's images in the order Photos shows them. nil if the album is gone (or
+    /// Photos doesn't show it to the app anymore).
+    @concurrent static func items(inAlbum id: String) async -> [SourceItem]? {
+        guard let c = PHAssetCollection.fetchAssetCollections(withLocalIdentifiers: [id], options: nil).firstObject else { return nil }
         return all(PHAsset.fetchAssets(in: c, options: imagesOnly())).map { .asset($0.localIdentifier) }
     }
 
@@ -119,22 +130,73 @@ nonisolated enum PhotoAlbums {
     }
 
     /// The image's bytes as Photos shows it (with edits). Images that are only in iCloud
-    /// Photos are downloaded first.
+    /// Photos are downloaded first; cancelling the task stops the download.
     @concurrent static func data(forAsset id: String) async throws -> Data {
         guard let a = asset(id) else { throw ImageError.unreadable }
         let o = PHImageRequestOptions()
         o.version = .current
         o.deliveryMode = .highQualityFormat
         o.isNetworkAccessAllowed = true
-        return try await withCheckedThrowingContinuation { c in
-            // With .highQualityFormat the handler is called exactly once.
-            PHImageManager.default().requestImageDataAndOrientation(for: a, options: o) { data, _, _, info in
-                if let data {
-                    c.resume(returning: data)
-                } else {
-                    c.resume(throwing: (info?[PHImageErrorKey] as? Error) ?? ImageError.unreadable)
+        let request = DataRequest()
+        return try await withTaskCancellationHandler {
+            try await withCheckedThrowingContinuation { c in
+                guard request.begin(c) else { return }
+                let started = PHImageManager.default().requestImageDataAndOrientation(for: a, options: o) { data, _, _, info in
+                    if let data {
+                        request.finish(.success(data))
+                    } else {
+                        request.finish(.failure((info?[PHImageErrorKey] as? Error) ?? ImageError.unreadable))
+                    }
                 }
+                request.started(started)
             }
+        } onCancel: {
+            request.cancel()
+        }
+    }
+
+    /// One download from Photos that can be cancelled. Answers its continuation exactly once,
+    /// whether Photos calls back after a cancel or not.
+    nonisolated private final class DataRequest: @unchecked Sendable {
+        private let lock = NSLock()
+        private var continuation: CheckedContinuation<Data, Error>?
+        private var id: PHImageRequestID?
+        private var cancelled = false
+
+        /// false if the task was cancelled before the request could start.
+        func begin(_ c: CheckedContinuation<Data, Error>) -> Bool {
+            let go = lock.withLock { () -> Bool in
+                if cancelled { return false }
+                continuation = c
+                return true
+            }
+            if !go { c.resume(throwing: CancellationError()) }
+            return go
+        }
+
+        func started(_ request: PHImageRequestID) {
+            let stop = lock.withLock { () -> Bool in
+                id = request
+                return cancelled
+            }
+            if stop { PHImageManager.default().cancelImageRequest(request) }
+        }
+
+        func finish(_ result: Result<Data, Error>) {
+            let c = lock.withLock { () -> CheckedContinuation<Data, Error>? in
+                defer { continuation = nil }
+                return continuation
+            }
+            c?.resume(with: result)
+        }
+
+        func cancel() {
+            let request = lock.withLock { () -> PHImageRequestID? in
+                cancelled = true
+                return id
+            }
+            if let request { PHImageManager.default().cancelImageRequest(request) }
+            finish(.failure(CancellationError()))
         }
     }
 

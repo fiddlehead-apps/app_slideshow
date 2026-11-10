@@ -3,24 +3,50 @@ import Foundation
 import Observation
 import UIKit
 
-/// The saved slideshows and their downsized image copies.
+/// The slideshows in the list, and the downsized image copies of those that keep one.
 ///
-/// Layout in Application Support:
+/// A folder or an album plays straight from Files or Photos, and a copy is the user's
+/// choice. Single photos and files can't be opened again later, so they are always copied.
+///
+/// Layout in Application Support (left out of device and iCloud backups):
 ///   Slideshows/library.json        the list of `Show`s
+///   Slideshows/library.backup.json the list as it was at the last start
 ///   Slideshows/<id>/000000.img     saved copies, numbered in play order
 ///   Slideshows/<id>/thumb.jpg      168 px square thumbnail
 ///   Slideshows/<id>/shapes.json    format of each saved image (portrait/landscape/square)
 ///   Slideshows/CloudSync.json      iCloud sync state (only once sync was turned on)
 @Observable
 final class Library {
+    /// One library for the whole app: every window shows and changes the same list.
+    static let shared = Library()
+
     struct Saving: Equatable {
         let id: String
         var saved: Int
         let total: Int
     }
 
+    /// Where the images of a pick come from.
+    enum Origin {
+        /// Single photos or files.
+        case picked
+        case folder(URL)
+        /// A Photos album, by its `localIdentifier`.
+        case album(String)
+    }
+
+    enum SourceError: Error {
+        /// The app may not read the Photos library.
+        case noAccess
+        /// The folder or album doesn't exist anymore or can't be reached right now.
+        case gone
+    }
+
     private(set) var shows: [Show] = []
+    /// The slideshow whose copies are being made right now.
     private(set) var saving: Saving?
+    /// Slideshows that get their copies once the one before them is done, in this order.
+    private(set) var queued: [String] = []
     /// Something the start screen should say (e.g. storage full).
     var notice: String?
 
@@ -39,6 +65,8 @@ final class Library {
 
     private static let settingsKey = "settings-v1"
     private static let settingsModifiedKey = "settings-modified"
+    /// How long one image may take to arrive before the copy goes on without it.
+    private static let readTimeout = Duration.seconds(180)
     private var defaultsModified: Date {
         get { UserDefaults.standard.object(forKey: Self.settingsModifiedKey) as? Date ?? .distantPast }
         set { UserDefaults.standard.set(newValue, forKey: Self.settingsModifiedKey) }
@@ -48,9 +76,14 @@ final class Library {
     /// Slideshows that got images from iCloud since the last refresh.
     private var touched: Set<String> = []
     private let root: URL
-    private var job: Task<Void, Never>?
-    private var jobNumber = 0
-    private var jobOwner: [String: Int] = [:]
+    /// The images of the queued slideshows.
+    @ObservationIgnored private var jobs: [String: [SourceItem]] = [:]
+    @ObservationIgnored private var running: (id: String, task: Task<Void, Never>)?
+    /// How many image records a slideshow had in iCloud before its copies were made again.
+    @ObservationIgnored private var formerImages: [String: Int] = [:]
+    @ObservationIgnored private var background = UIBackgroundTaskIdentifier.invalid
+    /// The list file exists but couldn't be read at the start: it must not be written over.
+    @ObservationIgnored private var listBlocked = false
     private var thumbs: [String: (version: Date, image: UIImage)] = [:]
     /// Formats of the saved images, valid for one version of the images (`Show.content`).
     private var shapeCache: [String: ShapeFile] = [:]
@@ -60,7 +93,7 @@ final class Library {
         var shapes: [ImageShape?]
     }
 
-    init() {
+    private init() {
         var support = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
         #if targetEnvironment(macCatalyst)
         // Not sandboxed on the Mac, so Application Support is shared with every other app.
@@ -76,6 +109,12 @@ final class Library {
         #endif
         root = support.appendingPathComponent("Slideshows", isDirectory: true)
         try? FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
+        // The copies are the user's images. They stay out of backups, so "nothing is uploaded"
+        // also holds for iCloud Backup; iCloud sync is the way to get them onto another device.
+        var noBackup = URLResourceValues()
+        noBackup.isExcludedFromBackup = true
+        var folder = root
+        try? folder.setResourceValues(noBackup)
         cloud = CloudSync(zone: "Slideshows", folder: root)
 
         if let d = UserDefaults.standard.data(forKey: Self.settingsKey), let s = try? JSONDecoder().decode(ShowSettings.self, from: d) {
@@ -83,15 +122,17 @@ final class Library {
         } else {
             defaults = ShowSettings()
         }
-        if let d = try? Data(contentsOf: listURL), let list = try? JSONDecoder().decode([Show].self, from: d) {
-            shows = list
-        }
+        loadList()
         cloud.attach(self)
+        queueUnsent()
+        Task { await resumeCopies() }
     }
 
     // MARK: Paths
 
     private var listURL: URL { root.appendingPathComponent("library.json") }
+    private var backupURL: URL { root.appendingPathComponent("library.backup.json") }
+    private var damagedURL: URL { root.appendingPathComponent("library.damaged.json") }
     func directory(for id: String) -> URL { root.appendingPathComponent(id, isDirectory: true) }
     func imageURL(_ id: String, _ index: Int) -> URL {
         directory(for: id).appendingPathComponent(String(format: "%06d.img", index))
@@ -99,9 +140,81 @@ final class Library {
     private func thumbURL(_ id: String) -> URL { directory(for: id).appendingPathComponent("thumb.jpg") }
     private func shapesURL(_ id: String) -> URL { directory(for: id).appendingPathComponent("shapes.json") }
 
+    // MARK: The list file
+
+    private enum Stored {
+        case shows([Show])
+        case missing
+        case unreadable
+    }
+
+    /// One entry that can't be decoded doesn't take the rest of the list with it.
+    private static func read(_ url: URL) -> Stored {
+        guard FileManager.default.fileExists(atPath: url.path) else { return .missing }
+        guard let d = try? Data(contentsOf: url),
+              let list = try? JSONDecoder().decode([Lossy<Show>].self, from: d) else { return .unreadable }
+        return .shows(list.compactMap(\.value))
+    }
+
+    private func loadList() {
+        let fm = FileManager.default
+        switch Self.read(listURL) {
+        case .shows(let list):
+            shows = list
+            try? fm.removeItem(at: backupURL)
+            try? fm.copyItem(at: listURL, to: backupURL)
+            removeLeftovers()
+        case .missing:
+            break
+        case .unreadable:
+            if case .shows(let list) = Self.read(backupURL) {
+                // Damaged: carry on with the list from the start before.
+                shows = list
+                setListAside()
+            } else {
+                // It may only be locked (the device wasn't unlocked since it restarted).
+                listBlocked = true
+            }
+        }
+    }
+
+    private func setListAside() {
+        try? FileManager.default.removeItem(at: damagedURL)
+        try? FileManager.default.moveItem(at: listURL, to: damagedURL)
+    }
+
     private func persist() {
+        if listBlocked {
+            switch Self.read(listURL) {
+            case .shows(let list):
+                // Readable after all: keep what is in it next to what was added meanwhile.
+                let known = Set(shows.map(\.id))
+                shows += list.filter { !known.contains($0.id) }
+            case .missing:
+                break
+            case .unreadable:
+                guard UIApplication.shared.isProtectedDataAvailable else { return }
+                setListAside()
+            }
+            listBlocked = false
+        }
         guard let d = try? JSONEncoder().encode(shows) else { return }
         try? d.write(to: listURL, options: [.atomic, .completeFileProtectionUntilFirstUserAuthentication])
+    }
+
+    /// Removes folders of slideshows that aren't in the list (e.g. images that came from
+    /// iCloud for a slideshow deleted here). Only ones that have been lying around for a week.
+    private func removeLeftovers() {
+        let fm = FileManager.default
+        let known = Set(shows.map(\.id))
+        let limit = Date().addingTimeInterval(-7 * 86_400)
+        let keys: Set<URLResourceKey> = [.isDirectoryKey, .contentModificationDateKey]
+        let found = (try? fm.contentsOfDirectory(at: root, includingPropertiesForKeys: Array(keys))) ?? []
+        for dir in found where !known.contains(dir.lastPathComponent) {
+            guard let v = try? dir.resourceValues(forKeys: keys), v.isDirectory == true,
+                  let changed = v.contentModificationDate, changed < limit else { continue }
+            try? fm.removeItem(at: dir)
+        }
     }
 
     // MARK: Lists
@@ -152,14 +265,15 @@ final class Library {
         change(&shows[i])
     }
 
-    /// A change to a saved slideshow's details: saved, and queued for iCloud if sync is on.
+    /// A change to a slideshow's details: saved, and queued for iCloud if it syncs (only
+    /// slideshows with a copy do, a folder or album can't be opened on another device).
     private func edit(_ id: String, _ change: (inout Show) -> Void) {
         modify(id) {
             change(&$0)
             $0.modified = Date()
         }
         persist()
-        cloud.changed([id])
+        if show(id)?.copy == true { cloud.changed([id]) }
     }
 
     func rename(_ id: String, to name: String) {
@@ -182,89 +296,332 @@ final class Library {
     }
 
     func delete(_ id: String) async {
-        if saving?.id == id {
-            jobOwner[id] = nil
-            job?.cancel()
-            await job?.value
-        }
-        let images = show(id).map { max($0.saved, $0.count) } ?? 0
+        await stopJob(id)
+        guard let s = show(id) else { return }
         shows.removeAll { $0.id == id }
         thumbs[id] = nil
         shapeCache[id] = nil
+        formerImages[id] = nil
         persist()
         try? FileManager.default.removeItem(at: directory(for: id))
-        cloud.deleted([id] + (0..<images).map { Self.imageRecord(id, $0) })
+        if cloud.knows(id) { cloud.deleted(Self.records(id, images: max(s.saved, s.count))) }
     }
 
-    // MARK: Saving copies
+    // MARK: Folders and albums
 
-    /// Creates the entry for a fresh pick (or reuses the one for the same
-    /// folder or album) and starts copying the images in the background. Returns the
-    /// entry so the player can adopt its settings right away.
+    /// What is in a slideshow's folder or album right now. `ask` lets the system ask for
+    /// access to Photos; without it a slideshow whose album needs asking counts as no access.
+    func source(of id: String, ask: Bool) async -> Result<[SourceItem], SourceError> {
+        guard let s = show(id) else { return .failure(.gone) }
+        if let album = s.album {
+            guard await PhotoAlbums.access(ask: ask) != .denied else { return .failure(.noAccess) }
+            guard let found = await PhotoAlbums.items(inAlbum: album) else { return .failure(.gone) }
+            return .success(found)
+        }
+        guard let bookmark = s.bookmark, let opened = await Bookmark.open(bookmark) else { return .failure(.gone) }
+        if let fresh = opened.fresh {
+            modify(id) {
+                $0.bookmark = fresh
+                $0.path = Bookmark.path(opened.url)
+            }
+            persist()
+        }
+        return .success(await Images.scan(folder: opened.url, access: opened.access))
+    }
+
+    /// What to tell the user when a slideshow's folder or album couldn't be opened.
+    func explain(_ error: SourceError, for s: Show) -> String {
+        switch error {
+        case .noAccess:
+            PhotoAlbums.noAccessText
+        case .gone where s.album != nil:
+            String(localized: "The album of “\(s.name)” can’t be found in Photos anymore. Choose the album again.")
+        case .gone:
+            String(localized: "The folder of “\(s.name)” can’t be opened right now. If it was moved or deleted, choose the folder again.")
+        }
+    }
+
+    /// Puts a fresh pick into the list, or brings the slideshow of the same folder or album
+    /// up to date, and returns it so the player can adopt its settings right away. Where the
+    /// slideshow keeps a copy, the copies are made in the background.
     @discardableResult
-    func save(_ items: [SourceItem], name: String, folder: String?, album: String? = nil) -> Show {
-        jobNumber += 1
-        let my = jobNumber
+    func add(_ items: [SourceItem], name: String, origin: Origin) -> Show {
         let now = Date()
         var show: Show
-        var oldImages = 0  // images of the old version, some of them may have to go from iCloud
-        let same: Show? = if let album {
-            shows.first { $0.album == album }
-        } else if let folder {
-            shows.first { $0.folder == folder }
-        } else {
-            nil
-        }
-        if let existing = same {
+        if let existing = match(origin) {
             show = existing
-            oldImages = max(existing.saved, existing.count)
-            show.count = items.count
-            show.saved = 0
-            show.bytes = 0
-            show.done = false
-            show.hasThumb = false
-            show.names = []
-            show.updated = now
+            if !show.copy { show.count = items.count }
             show.lastPlayed = now
             show.modified = now
-            show.content = now
-            modify(show.id) { $0 = show }
         } else {
-            show = Show(id: Show.newID(), name: name, folder: folder, count: items.count, settings: defaults)
-            show.album = album
+            show = Show(id: Show.newID(), name: name, folder: nil, count: items.count, settings: defaults)
+            show.copy = false
             shows.append(show)
         }
+        switch origin {
+        case .picked:
+            show.copy = true
+        case .folder(let url):
+            show.folder = url.lastPathComponent
+            show.path = Bookmark.path(url)
+            show.bookmark = Bookmark.make(url) ?? show.bookmark
+            // Without a bookmark the folder can't be opened again, so it needs the copy.
+            if show.bookmark == nil { show.copy = true }
+        case .album(let id):
+            show.album = id
+        }
+        modify(show.id) { $0 = show }
         persist()
-        jobOwner[show.id] = my
-        saving = Saving(id: show.id, saved: 0, total: items.count)
-
-        let id = show.id
-        let maxEdge = Images.maxEdge
-        let previous = job
-        previous?.cancel()
-        job = Task {
-            await previous?.value
-            await run(my: my, id: id, items: items, maxEdge: maxEdge, oldImages: oldImages)
+        if show.copy {
+            startCopy(show.id, items)
+        } else {
+            refreshThumb(show.id, items)
         }
         return show
     }
 
-    private func run(my: Int, id: String, items: [SourceItem], maxEdge: Int, oldImages: Int) async {
+    /// The slideshow a pick belongs to, if its folder or album is in the list already.
+    private func match(_ origin: Origin) -> Show? {
+        // A hidden slideshow isn't taken over: the pick would vanish into the hidden list.
+        let visible = shows.filter { !$0.hidden }
+        switch origin {
+        case .picked:
+            return nil
+        case .album(let id):
+            return visible.first { $0.album == id }
+        case .folder(let url):
+            let path = Bookmark.path(url), name = url.lastPathComponent
+            // The same folder, not just one with the same name. Slideshows from before folders
+            // were remembered, or from another device, only have the name to go by.
+            return visible.first { $0.path == path }
+                ?? visible.first { $0.path == nil && $0.album == nil && $0.folder == name }
+        }
+    }
+
+    /// A folder's or album's slideshow was opened from the list: notes what is in it now.
+    func opened(_ id: String, _ items: [SourceItem]) {
+        guard let s = show(id) else { return }
+        markPlayed(id)
+        guard !s.copy else { return }
+        modify(id) { $0.count = items.count }
+        persist()
+        if !s.hasThumb || s.count != items.count { refreshThumb(id, items) }
+    }
+
+    /// The picture in the list for a slideshow without a copy: its first image that opens.
+    private func refreshThumb(_ id: String, _ items: [SourceItem]) {
+        let dir = directory(for: id), url = thumbURL(id)
+        Task {
+            for item in items.prefix(8) {
+                guard let data = try? await item.data(timeout: .seconds(60)),
+                      let t = try? await Images.shrink(data, maxEdge: 400, wantThumb: true).thumb else { continue }
+                // A copy that was turned on meanwhile makes its own.
+                guard show(id)?.copy == false else { return }
+                try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+                guard (try? await Self.write(t, to: url)) != nil else { return }
+                thumbs[id] = nil
+                modify(id) {
+                    $0.hasThumb = true
+                    $0.updated = Date()
+                }
+                persist()
+                return
+            }
+        }
+    }
+
+    // MARK: Copies
+
+    /// Whether copies are being made or are waiting to be.
+    var isBusy: Bool { saving != nil || !queued.isEmpty }
+
+    /// Turns the saved copy of a folder's or album's slideshow on or off. Returns what went
+    /// wrong if the folder or album couldn't be opened to copy it.
+    @discardableResult
+    func setCopy(_ id: String, _ on: Bool) async -> SourceError? {
+        guard let s = show(id), s.hasReference, s.copy != on else { return nil }
+        guard on else {
+            await stopJob(id)
+            dropCopies(id)
+            persist()
+            return nil
+        }
+        // On right away, so the switch doesn't hang while a big folder is read.
+        modify(id) {
+            $0.copy = true
+            $0.done = false
+        }
+        let result = await source(of: id, ask: true)
+        guard show(id)?.copy == true else { return nil }
+        if case .success(let found) = result, !found.isEmpty {
+            persist()
+            startCopy(id, found)
+            return nil
+        }
+        modify(id) { $0.copy = false }
+        if case .failure(let error) = result { return error }
+        return .gone
+    }
+
+    /// What deleting a slideshow's copy does, for the question that comes before it.
+    func deletingCopyMeans(_ s: Show) -> String {
+        var parts: [String] = []
+        if !s.hasReference {
+            parts.append(String(localized: "This slideshow only exists as its copy, so deleting the copy deletes the whole slideshow."))
+        } else {
+            if s.bytes > 0 {
+                parts.append(String(localized: "This frees \(Format.bytes(s.bytes)) on this device.", comment: "The placeholder is a size like “86 MB”"))
+            }
+            parts.append(s.album != nil
+                ? String(localized: "The slideshow stays in the list and plays from its album in Photos.")
+                : String(localized: "The slideshow stays in the list and plays from its folder in Files."))
+        }
+        if cloud.knows(s.id) {
+            parts.append(String(localized: "It is also removed from iCloud and from your other devices."))
+        }
+        return parts.joined(separator: " ")
+    }
+
+    /// Deletes a slideshow's saved copy. A slideshow that only exists as its copy (single
+    /// photos and files, or one that came from iCloud) is deleted with it.
+    func deleteCopy(_ id: String) async {
+        guard let s = show(id) else { return }
+        if s.hasReference {
+            await setCopy(id, false)
+        } else {
+            await delete(id)
+        }
+    }
+
+    /// Removes the saved images of a slideshow that goes on playing from its folder or album.
+    private func dropCopies(_ id: String) {
+        guard let s = show(id) else { return }
+        let fm = FileManager.default
+        let files = (try? fm.contentsOfDirectory(at: directory(for: id), includingPropertiesForKeys: nil)) ?? []
+        for file in files where file.lastPathComponent != thumbURL(id).lastPathComponent {
+            try? fm.removeItem(at: file)
+        }
+        shapeCache[id] = nil
+        formerImages[id] = nil
+        modify(id) {
+            $0.copy = false
+            $0.saved = 0
+            $0.bytes = 0
+            $0.done = false
+            $0.names = []
+        }
+        // A slideshow without a copy isn't in iCloud.
+        if cloud.knows(id) { cloud.deleted(Self.records(id, images: max(s.saved, s.count))) }
+    }
+
+    /// Queues a slideshow for copying. Copies are made one slideshow after the other; a pick
+    /// made while another one is still being saved waits for its turn instead of stopping it.
+    private func startCopy(_ id: String, _ items: [SourceItem]) {
+        queued.removeAll { $0 == id }
+        queued.append(id)
+        jobs[id] = items
+        // Images picked again: the copy that is being made is of the old ones.
+        if let r = running, r.id == id { r.task.cancel() }
+        next()
+    }
+
+    private func next() {
+        guard running == nil else { return }
+        guard let id = queued.first else {
+            keepRunningInBackground(false)
+            return
+        }
+        queued.removeFirst()
+        guard let items = jobs.removeValue(forKey: id) else {
+            next()
+            return
+        }
+        keepRunningInBackground(true)
+        let task = Task {
+            await run(id, items)
+            running = nil
+            next()
+        }
+        running = (id, task)
+    }
+
+    /// Takes a slideshow out of the queue and waits until its copying has stopped.
+    private func stopJob(_ id: String) async {
+        queued.removeAll { $0 == id }
+        jobs[id] = nil
+        if let r = running, r.id == id {
+            r.task.cancel()
+            await r.task.value
+        }
+    }
+
+    /// Asks iOS for the extra time it grants after the app is left, so short copies still finish.
+    private func keepRunningInBackground(_ on: Bool) {
+        if on, background == .invalid {
+            background = UIApplication.shared.beginBackgroundTask(withName: "Saving copies") { [weak self] in
+                // Called on the main thread when the time is up.
+                MainActor.assumeIsolated { self?.keepRunningInBackground(false) }
+            }
+        } else if !on, background != .invalid {
+            UIApplication.shared.endBackgroundTask(background)
+            background = .invalid
+        }
+    }
+
+    /// Copies that were cut short when the app was closed start again, as long as their
+    /// folder or album opens without asking the user for anything.
+    private func resumeCopies() async {
+        for s in shows where s.copy && !s.done && s.hasReference {
+            guard case .success(let found) = await source(of: s.id, ask: false), !found.isEmpty,
+                  let now = show(s.id), now.copy, !now.done,
+                  saving?.id != s.id, !queued.contains(s.id) else { continue }
+            startCopy(s.id, found)
+        }
+    }
+
+    /// Copies that never got to iCloud because the app was closed while they were made.
+    private func queueUnsent() {
+        guard cloud.isOn else { return }
+        for s in shows where s.copy && s.saved > 0 && (s.done || !s.hasReference) && !cloud.knows(s.id) {
+            cloud.changed(Self.records(s.id, images: s.saved))
+        }
+    }
+
+    private func run(_ id: String, _ items: [SourceItem]) async {
+        guard let before = show(id), before.copy else { return }
         let dir = directory(for: id)
         let fm = FileManager.default
+        if cloud.knows(id) {
+            formerImages[id] = max(formerImages[id] ?? 0, before.saved, before.count)
+        }
         try? fm.removeItem(at: dir)
         try? fm.createDirectory(at: dir, withIntermediateDirectories: true)
         thumbs[id] = nil
-        if saving?.id != id { saving = Saving(id: id, saved: 0, total: items.count) }
+        shapeCache[id] = nil
+        let started = Date()
+        modify(id) {
+            $0.count = items.count
+            $0.saved = 0
+            $0.bytes = 0
+            $0.done = false
+            $0.hasThumb = false
+            $0.names = []
+            $0.updated = started
+            $0.content = started
+        }
+        persist()
+        saving = Saving(id: id, saved: 0, total: items.count)
+        defer { if saving?.id == id { saving = nil } }
 
-        var n = 0, bytes: Int64 = 0, hasThumb = false, full = false
+        var n = 0, bytes: Int64 = 0, hasThumb = false, full = false, failed = 0
         var names: [String] = []
+        var written = Date()
         for item in items {
-            if Task.isCancelled || show(id) == nil { break }
+            if Task.isCancelled || show(id)?.copy != true { break }
             do {
-                let data = try await item.data()
-                let r = try await Images.shrink(data, maxEdge: maxEdge, wantThumb: !hasThumb)
-                if Task.isCancelled || show(id) == nil { break }
+                let data = try await item.data(timeout: Self.readTimeout)
+                let r = try await Images.shrink(data, maxEdge: Images.copyEdge, wantThumb: !hasThumb)
+                if Task.isCancelled || show(id)?.copy != true { break }
                 try await Self.write(r.data, to: imageURL(id, n))
                 var newThumb = false
                 if let t = r.thumb, (try? await Self.write(t, to: thumbURL(id))) != nil {
@@ -275,38 +632,67 @@ final class Library {
                 bytes += Int64(r.data.count)
                 names.append(item.name)
                 saving?.saved = n
-                let (saved, total, nm) = (n, bytes, names)
+                let (saved, total) = (n, bytes)
                 modify(id) {
                     $0.saved = saved
                     $0.bytes = total
-                    $0.names = nm
                     if newThumb { $0.hasThumb = true; $0.updated = Date() }
                 }
-                if newThumb || n % 5 == 0 { persist() }
+                // Not after every image: the whole list is written each time.
+                if newThumb || Date().timeIntervalSince(written) > 3 {
+                    persist()
+                    written = Date()
+                }
             } catch {
+                if Task.isCancelled { break }
                 if Self.isOutOfSpace(error) { full = true; break }
+                failed += 1
             }
         }
 
-        let finished = !Task.isCancelled && !full
-        if jobOwner[id] == my {
-            jobOwner[id] = nil
-            let (saved, total, nm) = (n, bytes, names)
-            modify(id) {
-                $0.saved = saved
-                $0.bytes = total
-                $0.names = nm
-                $0.done = finished
-                $0.count = finished ? saved : items.count
-            }
+        // Stopped on purpose (picked again, copy turned off, deleted): whoever did it tidies up.
+        guard !Task.isCancelled, let s = show(id), s.copy else { return }
+
+        if s.hasReference, n == 0 || full {
+            // No copy came of it. The slideshow still plays from its folder or album.
+            dropCopies(id)
             persist()
-            // Uploaded once the copies are done, not image by image while they're made.
-            cloud.changed([id] + (0..<n).map { Self.imageRecord(id, $0) })
-            if oldImages > n { cloud.deleted((n..<oldImages).map { Self.imageRecord(id, $0) }) }
+            notice = full
+                ? String(localized: "Storage on this device is full, so “\(s.name)” plays without a copy.")
+                : String(localized: "No copy of “\(s.name)” could be made: none of its images could be read.")
+            return
         }
-        if saving?.id == id { saving = nil }
-        if full, let s = show(id) {
+        if n == 0 {
+            // Nothing to show at all.
+            shows.removeAll { $0.id == id }
+            formerImages[id] = nil
+            persist()
+            try? fm.removeItem(at: dir)
+            notice = full
+                ? String(localized: "Storage on this device is full. None of the images from “\(s.name)” could be saved.")
+                : String(localized: "None of the images from “\(s.name)” could be read, so there is no slideshow.")
+            return
+        }
+
+        // File names only where there are any (photos from the library have none).
+        let kept = names.contains { !$0.isEmpty } ? names : []
+        let (saved, total, complete) = (n, bytes, !full)
+        modify(id) {
+            $0.saved = saved
+            $0.bytes = total
+            $0.names = kept
+            $0.done = complete
+            $0.count = complete ? saved : items.count
+        }
+        persist()
+        // Uploaded once the copies are done, not image by image while they're made.
+        cloud.changed(Self.records(id, images: saved))
+        let former = formerImages.removeValue(forKey: id) ?? 0
+        if former > saved { cloud.deleted((saved..<former).map { Self.imageRecord(id, $0) }) }
+        if full {
             notice = String(localized: "Storage on this device is full. \(n) of \(items.count) images from “\(s.name)” were saved.")
+        } else if failed > 0 {
+            notice = String(localized: "\(failed) of \(items.count) images from “\(s.name)” couldn’t be read and were left out of the copy.")
         }
     }
 
@@ -321,15 +707,33 @@ final class Library {
     }
 }
 
+/// Decodes to nil instead of failing, for reading a list entry by entry.
+nonisolated private struct Lossy<Value: Decodable>: Decodable {
+    let value: Value?
+
+    init(from decoder: Decoder) throws {
+        value = try? Value(from: decoder)
+    }
+}
+
 // MARK: - iCloud
 
 /// Records: "Show" per slideshow (named by its ID), "Image" per saved copy (named
 /// "<show>-<index>", the file as asset) and "Defaults" for the settings of new slideshows.
 /// Thumbnails, sizes and how many images are saved are worked out on each device.
+///
+/// Only slideshows with a copy sync: the copy is what another device can play. A folder or
+/// album is only known to the device that picked it, so those fields stay local, and a
+/// slideshow without a copy isn't in iCloud at all.
 extension Library: CloudSyncStore {
     static let defaultsRecord = "defaults"
 
     static func imageRecord(_ show: String, _ index: Int) -> String { "\(show)-\(index)" }
+
+    /// The record of a slideshow and of its first `images` images.
+    static func records(_ show: String, images: Int) -> [String] {
+        [show] + (0..<images).map { imageRecord(show, $0) }
+    }
 
     private enum RecordName {
         case defaults, show(String), image(String, Int)
@@ -344,7 +748,7 @@ extension Library: CloudSyncStore {
     }
 
     func allRecordNames() -> [String] {
-        [Self.defaultsRecord] + shows.flatMap { s in [s.id] + (0..<s.saved).map { Self.imageRecord(s.id, $0) } }
+        [Self.defaultsRecord] + shows.filter(\.copy).flatMap { Self.records($0.id, images: $0.saved) }
     }
 
     func record(for id: CKRecord.ID, existing: CKRecord?) -> CKRecord? {
@@ -355,13 +759,15 @@ extension Library: CloudSyncStore {
             r["modified"] = defaultsModified
             return r
         case .show(let sid):
-            guard let s = show(sid) else { return nil }
+            guard let s = show(sid), s.copy else { return nil }
             let r = existing ?? CKRecord(recordType: "Show", recordID: id)
             let e = r.encryptedValues
             e["name"] = s.name
             e["folder"] = s.folder
-            e["album"] = s.album
-            e["names"] = try? JSONEncoder().encode(s.names)
+            // A record holds at most 1 MB. The file names of a very big folder don't fit, so
+            // they stay behind and the other devices show the images without names.
+            let names = try? JSONEncoder().encode(s.names)
+            e["names"] = (names?.count ?? 0) <= 400_000 ? names : nil
             e["settings"] = try? JSONEncoder().encode(s.settings)
             e["hidden"] = s.hidden
             r["count"] = s.count
@@ -373,7 +779,7 @@ extension Library: CloudSyncStore {
             return r
         case .image(let sid, let index):
             let url = imageURL(sid, index)
-            guard let s = show(sid), index < s.saved, FileManager.default.fileExists(atPath: url.path) else { return nil }
+            guard let s = show(sid), s.copy, index < s.saved, FileManager.default.fileExists(atPath: url.path) else { return nil }
             let r = existing ?? CKRecord(recordType: "Image", recordID: id)
             r["show"] = sid
             r["index"] = index
@@ -399,32 +805,49 @@ extension Library: CloudSyncStore {
             return false
 
         case .show(let sid):
-            let remote = r["modified"] as? Date ?? .distantPast
-            if let local = show(sid), local.modified > remote { return true }
+            // Two halves, each with its own date: the details (name, settings, hidden, last
+            // played) go by `modified`, the images by `content`. One device may have opened
+            // the slideshow last while the other one has the newer images.
+            let remoteDetails = r["modified"] as? Date ?? .distantPast
+            let remoteImages = r["content"] as? Date ?? .distantPast
+            let local = show(sid)
+            let keepDetails = local.map { $0.modified > remoteDetails } ?? false
+            let keepImages = local.map { $0.content > remoteImages } ?? false
+            if keepDetails && keepImages { return true }
             let e = r.encryptedValues
             guard let name = e["name"] as? String else { return false }
             let settings = (e["settings"] as? Data).flatMap { try? JSONDecoder().decode(ShowSettings.self, from: $0) } ?? defaults
-            var s = show(sid) ?? Show(id: sid, name: name, folder: nil, count: 0, settings: settings)
-            s.name = name
-            s.folder = e["folder"] as? String
-            s.album = e["album"] as? String
-            s.names = (e["names"] as? Data).flatMap { try? JSONDecoder().decode([String].self, from: $0) } ?? []
-            s.settings = settings
-            s.hidden = e["hidden"] as? Bool ?? false
-            s.count = r["count"] as? Int ?? 0
-            s.done = r["done"] as? Bool ?? false
-            s.created = r["created"] as? Date ?? s.created
-            s.lastPlayed = r["lastPlayed"] as? Date ?? s.lastPlayed
-            s.modified = remote
-            s.content = r["content"] as? Date ?? s.content
+            var s = local ?? Show(id: sid, name: name, folder: nil, count: 0, settings: settings)
+            if !keepDetails {
+                s.name = name
+                s.settings = settings
+                s.hidden = e["hidden"] as? Bool ?? false
+                s.created = r["created"] as? Date ?? s.created
+                s.lastPlayed = r["lastPlayed"] as? Date ?? s.lastPlayed
+                s.modified = remoteDetails
+            }
+            if !keepImages {
+                // The folder it plays here keeps its own name.
+                if s.bookmark == nil { s.folder = e["folder"] as? String }
+                s.names = (e["names"] as? Data).flatMap { try? JSONDecoder().decode([String].self, from: $0) } ?? []
+                s.count = r["count"] as? Int ?? 0
+                s.done = r["done"] as? Bool ?? false
+                s.content = remoteImages
+            }
+            // Being in iCloud means it has a copy.
+            s.copy = true
             if let i = shows.firstIndex(where: { $0.id == sid }) { shows[i] = s } else { shows.append(s) }
             touched.insert(sid)
-            return false
+            // The half that is newer here goes back up.
+            return keepDetails || keepImages
 
         case .image(let sid, let index):
             // A slideshow that is being saved here right now uploads its own images when done.
-            guard saving?.id != sid, let file = (r["file"] as? CKAsset)?.fileURL else { return false }
+            guard saving?.id != sid else { return false }
             if let local = show(sid), local.content > r["content"] as? Date ?? .distantPast { return true }
+            // No file: the record came back from a refused upload, which carries no assets.
+            // `CloudSync` fetches it again in full.
+            guard let file = (r["file"] as? CKAsset)?.fileURL else { return false }
             let fm = FileManager.default
             let url = imageURL(sid, index)
             try? fm.createDirectory(at: directory(for: sid), withIntermediateDirectories: true)
@@ -445,13 +868,19 @@ extension Library: CloudSyncStore {
     func remove(_ id: CKRecord.ID) {
         switch RecordName(id.recordName) {
         case .show(let sid):
-            if saving?.id == sid {
-                jobOwner[sid] = nil
-                job?.cancel()
+            queued.removeAll { $0 == sid }
+            jobs[sid] = nil
+            if let r = running, r.id == sid { r.task.cancel() }
+            if show(sid)?.hasReference == true {
+                // Gone from iCloud (deleted, or its copy was turned off, on another device). Its
+                // folder or album is here, so it stays and plays from there without the copy.
+                dropCopies(sid)
+                break
             }
             shows.removeAll { $0.id == sid }
             thumbs[sid] = nil
             shapeCache[sid] = nil
+            formerImages[sid] = nil
             try? FileManager.default.removeItem(at: directory(for: sid))
         case .image(let sid, let index):
             try? FileManager.default.removeItem(at: imageURL(sid, index))
@@ -462,7 +891,7 @@ extension Library: CloudSyncStore {
     }
 
     func didApplyChanges() {
-        for sid in touched where saving?.id != sid { refreshFromFiles(sid) }
+        for sid in touched where saving?.id != sid && !queued.contains(sid) { refreshFromFiles(sid) }
         touched = []
         persist()
     }
@@ -470,7 +899,7 @@ extension Library: CloudSyncStore {
     /// Counts the images that are here (from the first one on, as the player plays them)
     /// and makes the thumbnail from the first image.
     private func refreshFromFiles(_ sid: String) {
-        guard let s = show(sid) else { return }
+        guard let s = show(sid), s.copy else { return }
         let fm = FileManager.default
         var n = 0, bytes: Int64 = 0
         while n < s.count, let size = (try? fm.attributesOfItem(atPath: imageURL(sid, n).path))?[.size] as? NSNumber {
@@ -504,6 +933,6 @@ extension Library: CloudSyncStore {
 
     /// The slideshow is complete in iCloud but not all images are here yet.
     func isDownloading(_ s: Show) -> Bool {
-        cloud.isOn && s.done && s.saved < s.count && saving?.id != s.id
+        cloud.isOn && s.copy && s.done && s.saved < s.count && saving?.id != s.id && !queued.contains(s.id)
     }
 }

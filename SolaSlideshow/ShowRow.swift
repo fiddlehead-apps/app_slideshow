@@ -50,24 +50,39 @@ struct ShowRow: View {
     @State private var newName = ""
     @State private var confirmDelete = false
     @State private var confirmTask: Task<Void, Never>?
+    @State private var askDeleteCopy = false
 
     var body: some View {
-        HStack(spacing: 2) {
-            mainArea
-            if !renaming {
-                iconButton("pencil", label: "Rename \(show.name)") {
-                    newName = show.name
-                    renaming = true
-                }
-                if inHidden {
-                    iconButton("eye", label: "Move \(show.name) back to Your slideshows") {
-                        withAnimation { library.setHidden(show.id, false) }
+        VStack(alignment: .leading, spacing: 0) {
+            HStack(spacing: 2) {
+                mainArea
+                if !renaming {
+                    iconButton("pencil", label: "Rename \(show.name)") {
+                        newName = show.name
+                        renaming = true
                     }
+                    if inHidden {
+                        iconButton("eye", label: "Move \(show.name) back to Your slideshows") {
+                            withAnimation { library.setHidden(show.id, false) }
+                        }
+                    }
+                    deleteButton
                 }
-                deleteButton
             }
+            .frame(minHeight: 76)
+            if show.copy, show.bytes > 0 { copyLine }
         }
-        .frame(minHeight: 76)
+        .confirmationDialog(show.hasReference ? Text("Delete the copy of “\(show.name)”?") : Text("Delete “\(show.name)”?"),
+                            isPresented: $askDeleteCopy, titleVisibility: .visible) {
+            Button(role: .destructive) {
+                Task { await library.deleteCopy(show.id) }
+            } label: {
+                show.hasReference ? Text("Delete copy") : Text("Delete slideshow")
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text(library.deletingCopyMeans(show))
+        }
         .alert("Rename slideshow", isPresented: $renaming) {
             TextField("Slideshow name", text: $newName)
                 .submitLabel(.done)
@@ -126,20 +141,37 @@ struct ShowRow: View {
         }
     }
 
+    /// How much room the saved copy takes, and the way to get rid of it.
+    private var copyLine: some View {
+        HStack(spacing: 12) {
+            Text("Copy on this device: \(Format.bytes(show.bytes))", comment: "The placeholder is a size like “86 MB”")
+                .font(.system(size: 14))
+                .foregroundStyle(Color.muted)
+            Button { askDeleteCopy = true } label: {
+                Text("Delete copy")
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundStyle(Color.accent)
+                    .frame(minHeight: 36)
+                    .contentShape(.rect)
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("Delete the copy of \(show.name)")
+        }
+        // In line with the name, next to the picture.
+        .padding(.leading, 70)
+        .padding(.bottom, 6)
+    }
+
     private var subtitle: (text: String, live: Bool) {
         if let s = library.saving, s.id == show.id { return (String(localized: "Saving \(s.saved) of \(s.total)"), true) }
+        if library.queued.contains(show.id) { return (String(localized: "Waiting to be saved"), true) }
         if library.isDownloading(show) { return (String(localized: "Loading from iCloud: \(show.saved) of \(show.count)"), true) }
-        if !show.done {
-            if show.album != nil {
-                return (show.saved > 0
-                        ? String(localized: "\(show.saved) of \(show.count) saved. Choose the album again to finish.")
-                        : String(localized: "Not saved yet. Choose the album again."), false)
-            }
-            return (show.saved > 0
-                    ? String(localized: "\(show.saved) of \(show.count) saved. Choose the folder again to finish.")
-                    : String(localized: "Not saved yet. Choose the folder again."), false)
+        // Single photos or files whose copying was cut short: the rest can't be fetched anymore.
+        if show.copy, !show.done, !show.hasReference {
+            return (String(localized: "Only \(show.saved) of \(show.count) images were saved."), false)
         }
-        var bits = [String(localized: "\(show.saved) images"), ShowSettings.intervalLabel(show.settings.interval)]
+        let images = show.playsFromCopy ? show.saved : show.count
+        var bits = [String(localized: "\(images) images"), ShowSettings.intervalLabel(show.settings.interval)]
         if show.settings.shuffle { bits.append(String(localized: "shuffled", comment: "Slideshow plays in random order")) }
         switch show.settings.orientation {
         case .all: break
