@@ -184,9 +184,14 @@ case "$MODE" in
           xcodebuild -project "$PROJECT" -scheme "$SCHEME" -configuration Debug \
             -destination "id=$SIM_ID" -derivedDataPath "$OUT/$APP_KEY-test" \
             "${SETTINGS[@]}" test; then
-        # How many tests ran, so a green run can't mean "found none".
-        if ! grep -E 'Test run with [0-9]+ tests?' "$OUT/$APP_KEY-test.log" | tail -1 | sed 's/^[^T]*/    /' | grep .; then
+        # How many tests ran, so a green run can't mean "found none". xcodebuild reports
+        # each test on a line of its own ("Test case '…' passed on '…'").
+        PASSED=$(grep -cE "^Test case '.*' passed" "$OUT/$APP_KEY-test.log")
+        if [ "$PASSED" -gt 0 ]; then
+          echo "    $PASSED tests passed"
+        elif ! grep -E 'Test run with [0-9]+ tests?' "$OUT/$APP_KEY-test.log" | tail -1 | sed 's/^[^T]*/    /' | grep .; then
           echo "    No test results in the log: $OUT/$APP_KEY-test.log"
+          grep -iE "test (run|suite|case|session)|Executed [0-9]+ test|Testing (started|failed)|TEST (SUCCEEDED|FAILED)" "$OUT/$APP_KEY-test.log" | tail -20 | sed 's/^/      /'
           FAILED=1
         fi
       else
