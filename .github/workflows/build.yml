@@ -1,0 +1,56 @@
+name: Build and test
+
+# Compiles the app for the iPhone simulator and the Mac and runs the unit tests,
+# for every push that touches the app. Nothing is signed, uploaded or released.
+on:
+  push:
+    paths:
+      - "SolaSlideshow/**"
+      - "SolaSlideshowTests/**"
+      - "SolaSlideshow.xcodeproj/**"
+      - "Config/**"
+      - "build.sh"
+      - ".github/workflows/build.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build and test
+    runs-on: macos-26
+    timeout-minutes: 45
+    env:
+      BUILD_DIR: ${{ github.workspace }}/.build-logs
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Xcode version
+        run: xcodebuild -version
+
+      - name: Build for the iPhone simulator
+        run: ./build.sh --sim
+
+      - name: Unit tests
+        run: ./build.sh --test
+
+      - name: Compile for the Mac
+        run: ./build.sh --mac-check
+
+      - name: Errors
+        if: failure()
+        run: |
+          grep -hE "error:|✘|recorded an issue|Expectation failed|BUILD FAILED|TEST FAILED|xcodebuild: error" "$BUILD_DIR"/*.log | sort -u | head -300 || true
+
+      - name: Keep the logs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-logs
+          path: ${{ env.BUILD_DIR }}/*.log
+          retention-days: 7

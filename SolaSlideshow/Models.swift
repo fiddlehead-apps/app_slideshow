@@ -63,6 +63,23 @@ nonisolated struct ShowSettings: Codable, Equatable, Sendable {
     }
 }
 
+/// What a slideshow's record in iCloud says about it.
+nonisolated struct RemoteShow: Sendable {
+    var name: String
+    var folder: String?
+    var names: [String] = []
+    var settings = ShowSettings()
+    var hidden = false
+    var count = 0
+    var done = false
+    var created: Date?
+    var lastPlayed: Date?
+    /// Last change of the details, see `Show.modified`.
+    var modified: Date
+    /// Version of the images, see `Show.content`.
+    var content: Date
+}
+
 /// A slideshow in the list. A folder or an album plays straight from Files or Photos
 /// (`bookmark`, `album`); with `copy` the images also live as downsized copies in
 /// `Library.directory(for:)`, numbered in play order. Single photos and files, and slideshows
@@ -130,6 +147,41 @@ nonisolated struct Show: Codable, Identifiable, Equatable, Sendable {
         names = try c.decodeIfPresent([String].self, forKey: .names) ?? []
         modified = try c.decodeIfPresent(Date.self, forKey: .modified) ?? .distantPast
         content = try c.decodeIfPresent(Date.self, forKey: .content) ?? .distantPast
+    }
+
+    /// Brings a slideshow together with its record from iCloud.
+    ///
+    /// Two halves, each with its own date: the details (name, settings, hidden, last
+    /// played) go by `modified`, the images (how many, their file names, whether they are
+    /// complete) by `content`. One device may have opened the slideshow last while another
+    /// one has the newer images, so each half is taken from the side where it is newer.
+    ///
+    /// - Returns: `show` is the slideshow as it should be now, nil if the record has nothing
+    ///   newer. `resend` says that this device has something newer and should upload it.
+    static func merged(_ local: Show?, id: String, with remote: RemoteShow) -> (show: Show?, resend: Bool) {
+        let keepDetails = local.map { $0.modified > remote.modified } ?? false
+        let keepImages = local.map { $0.content > remote.content } ?? false
+        if keepDetails && keepImages { return (nil, true) }
+        var s = local ?? Show(id: id, name: remote.name, folder: nil, count: 0, settings: remote.settings)
+        if !keepDetails {
+            s.name = remote.name
+            s.settings = remote.settings
+            s.hidden = remote.hidden
+            s.created = remote.created ?? s.created
+            s.lastPlayed = remote.lastPlayed ?? s.lastPlayed
+            s.modified = remote.modified
+        }
+        if !keepImages {
+            // A folder that plays on this device keeps its own name.
+            if s.bookmark == nil { s.folder = remote.folder }
+            s.names = remote.names
+            s.count = remote.count
+            s.done = remote.done
+            s.content = remote.content
+        }
+        // Only slideshows with a copy are in iCloud.
+        s.copy = true
+        return (s, keepDetails || keepImages)
     }
 
     /// Whether its folder or album can be opened again on this device.

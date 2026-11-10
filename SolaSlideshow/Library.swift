@@ -45,8 +45,10 @@ final class Library {
     private(set) var shows: [Show] = []
     /// The slideshow whose copies are being made right now.
     private(set) var saving: Saving?
+    /// Which slideshow gets its copies made, and which ones wait for that.
+    private(set) var queue = CopyQueue<[SourceItem]>()
     /// Slideshows that get their copies once the one before them is done, in this order.
-    private(set) var queued: [String] = []
+    var queued: [String] { queue.waiting }
     /// Something the start screen should say (e.g. storage full).
     var notice: String?
 
@@ -76,9 +78,8 @@ final class Library {
     /// Slideshows that got images from iCloud since the last refresh.
     private var touched: Set<String> = []
     private let root: URL
-    /// The images of the queued slideshows.
-    @ObservationIgnored private var jobs: [String: [SourceItem]] = [:]
-    @ObservationIgnored private var running: (id: String, task: Task<Void, Never>)?
+    /// The task that makes the copies of `queue.running`.
+    @ObservationIgnored private var copying: Task<Void, Never>?
     /// How many image records a slideshow had in iCloud before its copies were made again.
     @ObservationIgnored private var formerImages: [String: Int] = [:]
     @ObservationIgnored private var background = UIBackgroundTaskIdentifier.invalid
@@ -348,7 +349,7 @@ final class Library {
     func add(_ items: [SourceItem], name: String, origin: Origin) -> Show {
         let now = Date()
         var show: Show
-        if let existing = match(origin) {
+        if let existing = Self.match(origin, in: shows) {
             show = existing
             if !show.copy { show.count = items.count }
             show.lastPlayed = now
@@ -381,7 +382,7 @@ final class Library {
     }
 
     /// The slideshow a pick belongs to, if its folder or album is in the list already.
-    private func match(_ origin: Origin) -> Show? {
+    static func match(_ origin: Origin, in shows: [Show]) -> Show? {
         // A hidden slideshow isn't taken over: the pick would vanish into the hidden list.
         let visible = shows.filter { !$0.hidden }
         switch origin {
@@ -433,7 +434,7 @@ final class Library {
     // MARK: Copies
 
     /// Whether copies are being made or are waiting to be.
-    var isBusy: Bool { saving != nil || !queued.isEmpty }
+    var isBusy: Bool { saving != nil || !queue.isEmpty }
 
     /// Turns the saved copy of a folder's or album's slideshow on or off. Returns what went
     /// wrong if the folder or album couldn't be opened to copy it.
@@ -517,41 +518,30 @@ final class Library {
     /// Queues a slideshow for copying. Copies are made one slideshow after the other; a pick
     /// made while another one is still being saved waits for its turn instead of stopping it.
     private func startCopy(_ id: String, _ items: [SourceItem]) {
-        queued.removeAll { $0 == id }
-        queued.append(id)
-        jobs[id] = items
         // Images picked again: the copy that is being made is of the old ones.
-        if let r = running, r.id == id { r.task.cancel() }
+        if queue.add(id, items) { copying?.cancel() }
         next()
     }
 
     private func next() {
-        guard running == nil else { return }
-        guard let id = queued.first else {
-            keepRunningInBackground(false)
-            return
-        }
-        queued.removeFirst()
-        guard let items = jobs.removeValue(forKey: id) else {
-            next()
+        guard let job = queue.start() else {
+            if queue.isEmpty { keepRunningInBackground(false) }
             return
         }
         keepRunningInBackground(true)
-        let task = Task {
-            await run(id, items)
-            running = nil
+        copying = Task {
+            await run(job.id, job.job)
+            copying = nil
+            queue.finished()
             next()
         }
-        running = (id, task)
     }
 
     /// Takes a slideshow out of the queue and waits until its copying has stopped.
     private func stopJob(_ id: String) async {
-        queued.removeAll { $0 == id }
-        jobs[id] = nil
-        if let r = running, r.id == id {
-            r.task.cancel()
-            await r.task.value
+        if queue.remove(id), let task = copying {
+            task.cancel()
+            await task.value
         }
     }
 
@@ -574,7 +564,7 @@ final class Library {
         for s in shows where s.copy && !s.done && s.hasReference {
             guard case .success(let found) = await source(of: s.id, ask: false), !found.isEmpty,
                   let now = show(s.id), now.copy, !now.done,
-                  saving?.id != s.id, !queued.contains(s.id) else { continue }
+                  queue.running != s.id, !queued.contains(s.id) else { continue }
             startCopy(s.id, found)
         }
     }
@@ -805,41 +795,27 @@ extension Library: CloudSyncStore {
             return false
 
         case .show(let sid):
-            // Two halves, each with its own date: the details (name, settings, hidden, last
-            // played) go by `modified`, the images by `content`. One device may have opened
-            // the slideshow last while the other one has the newer images.
-            let remoteDetails = r["modified"] as? Date ?? .distantPast
-            let remoteImages = r["content"] as? Date ?? .distantPast
-            let local = show(sid)
-            let keepDetails = local.map { $0.modified > remoteDetails } ?? false
-            let keepImages = local.map { $0.content > remoteImages } ?? false
-            if keepDetails && keepImages { return true }
             let e = r.encryptedValues
             guard let name = e["name"] as? String else { return false }
-            let settings = (e["settings"] as? Data).flatMap { try? JSONDecoder().decode(ShowSettings.self, from: $0) } ?? defaults
-            var s = local ?? Show(id: sid, name: name, folder: nil, count: 0, settings: settings)
-            if !keepDetails {
-                s.name = name
-                s.settings = settings
-                s.hidden = e["hidden"] as? Bool ?? false
-                s.created = r["created"] as? Date ?? s.created
-                s.lastPlayed = r["lastPlayed"] as? Date ?? s.lastPlayed
-                s.modified = remoteDetails
+            let remote = RemoteShow(
+                name: name,
+                folder: e["folder"] as? String,
+                names: (e["names"] as? Data).flatMap { try? JSONDecoder().decode([String].self, from: $0) } ?? [],
+                settings: (e["settings"] as? Data).flatMap { try? JSONDecoder().decode(ShowSettings.self, from: $0) } ?? defaults,
+                hidden: e["hidden"] as? Bool ?? false,
+                count: r["count"] as? Int ?? 0,
+                done: r["done"] as? Bool ?? false,
+                created: r["created"] as? Date,
+                lastPlayed: r["lastPlayed"] as? Date,
+                modified: r["modified"] as? Date ?? .distantPast,
+                content: r["content"] as? Date ?? .distantPast)
+            let merged = Show.merged(show(sid), id: sid, with: remote)
+            if let s = merged.show {
+                if let i = shows.firstIndex(where: { $0.id == sid }) { shows[i] = s } else { shows.append(s) }
+                touched.insert(sid)
             }
-            if !keepImages {
-                // The folder it plays here keeps its own name.
-                if s.bookmark == nil { s.folder = e["folder"] as? String }
-                s.names = (e["names"] as? Data).flatMap { try? JSONDecoder().decode([String].self, from: $0) } ?? []
-                s.count = r["count"] as? Int ?? 0
-                s.done = r["done"] as? Bool ?? false
-                s.content = remoteImages
-            }
-            // Being in iCloud means it has a copy.
-            s.copy = true
-            if let i = shows.firstIndex(where: { $0.id == sid }) { shows[i] = s } else { shows.append(s) }
-            touched.insert(sid)
-            // The half that is newer here goes back up.
-            return keepDetails || keepImages
+            // Whatever is newer here goes back up.
+            return merged.resend
 
         case .image(let sid, let index):
             // A slideshow that is being saved here right now uploads its own images when done.
@@ -868,9 +844,7 @@ extension Library: CloudSyncStore {
     func remove(_ id: CKRecord.ID) {
         switch RecordName(id.recordName) {
         case .show(let sid):
-            queued.removeAll { $0 == sid }
-            jobs[sid] = nil
-            if let r = running, r.id == sid { r.task.cancel() }
+            if queue.remove(sid) { copying?.cancel() }
             if show(sid)?.hasReference == true {
                 // Gone from iCloud (deleted, or its copy was turned off, on another device). Its
                 // folder or album is here, so it stays and plays from there without the copy.

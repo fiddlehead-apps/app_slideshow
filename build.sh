@@ -7,6 +7,8 @@
 #   ./build.sh --no-install     build for the iPhone, don't install
 #   ./build.sh --install-only   don't build, install the last build
 #   ./build.sh --sim            build for the simulator without signing (quick compile check)
+#   ./build.sh --test           run the unit tests in the simulator
+#   ./build.sh --mac-check      compile the Mac app without signing or installing it
 #   ./build.sh --icloud         build with iCloud sync (needs a paid developer team)
 #
 # Environment:
@@ -42,6 +44,8 @@ for arg in "$@"; do
     --no-install)   INSTALL=0 ;;
     --install-only) MODE=install ;;
     --sim)          MODE=sim ;;
+    --test)         MODE=test ;;
+    --mac-check)    MODE=maccheck ;;
     --icloud)       SETTINGS+=("SOLA_ICLOUD=YES") ;;
     --no-mac)       MAC=0 ;;
     -h|--help)      sed -n '2,/^$/p' "$HERE/$(basename "$0")" | sed -e '$d' -e 's/^# \{0,1\}//'; exit 0 ;;
@@ -114,6 +118,28 @@ PY
   fi
 }
 
+# Sets SIM_ID to an iPhone simulator of the newest installed iOS.
+find_simulator() {
+  SIM_ID="$(xcrun simctl list devices available --json 2>/dev/null | /usr/bin/python3 -I -c '
+import json, re, sys
+try:
+    runtimes = json.load(sys.stdin)["devices"]
+except Exception:
+    runtimes = {}
+def version(runtime):
+    return [int(n) for n in re.findall(r"\d+", runtime.rsplit("iOS", 1)[-1])]
+for runtime in sorted((r for r in runtimes if "SimRuntime.iOS" in r), key=version, reverse=True):
+    phones = [d["udid"] for d in runtimes[runtime] if d["name"].startswith("iPhone")]
+    if phones:
+        print(phones[0])
+        break
+')"
+  if [ -z "$SIM_ID" ]; then
+    echo "Found no iPhone simulator. Install one in Xcode › Settings › Components."
+    return 1
+  fi
+}
+
 install_device() {
   if [ ! -d "$DEVICE_APP" ]; then
     echo "$NAME: no iPhone build in $OUT, build first."
@@ -150,6 +176,23 @@ case "$MODE" in
     step "$NAME (simulator)" "$OUT/$APP_KEY-sim.log" \
       xcodebuild -project "$PROJECT" -scheme "$SCHEME" -configuration Debug \
         -destination 'generic/platform=iOS Simulator' -derivedDataPath "$OUT/$APP_KEY-sim" \
+        CODE_SIGNING_ALLOWED=NO "${SETTINGS[@]}" build
+    ;;
+  test)
+    if find_simulator; then
+      step "$NAME (tests)" "$OUT/$APP_KEY-test.log" \
+        xcodebuild -project "$PROJECT" -scheme "$SCHEME" -configuration Debug \
+          -destination "id=$SIM_ID" -derivedDataPath "$OUT/$APP_KEY-test" \
+          "${SETTINGS[@]}" test \
+        || grep -E '✘|recorded an issue|Expectation failed' "$OUT/$APP_KEY-test.log" | sort -u | head -40 | sed 's/^/    /'
+    else
+      FAILED=1
+    fi
+    ;;
+  maccheck)
+    step "$NAME (Mac, compile only)" "$OUT/$APP_KEY-mac-check.log" \
+      xcodebuild -project "$PROJECT" -scheme "$SCHEME" -configuration Debug \
+        -destination 'platform=macOS,variant=Mac Catalyst' -derivedDataPath "$OUT/$APP_KEY-mac-check" \
         CODE_SIGNING_ALLOWED=NO "${SETTINGS[@]}" build
     ;;
   device)
