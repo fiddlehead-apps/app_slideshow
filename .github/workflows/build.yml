@@ -25,13 +25,14 @@ jobs:
     name: Build and test
     runs-on: macos-26
     timeout-minutes: 45
-    env:
-      BUILD_DIR: ${{ runner.temp }}/sola-build
     steps:
       - uses: actions/checkout@v5
 
       - name: Xcode version
-        run: xcodebuild -version
+        run: |
+          xcodebuild -version
+          # Builds and logs go outside the checkout.
+          echo "BUILD_DIR=$RUNNER_TEMP/sola-build" >> "$GITHUB_ENV"
 
       - name: Build for the iPhone simulator
         run: ./build.sh --sim
